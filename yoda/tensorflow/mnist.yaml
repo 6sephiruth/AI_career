@@ -1,0 +1,15 @@
+batch_size: 64
+
+dataset: 'mnist_data'
+model_train: 'mni_dnn'
+
+
+gpu_num: "2, 3"
+attack_method: 'FGSM'
+
+MNIST_checkpoint_path: 'model/mnist_model'
+HARD_MNIST_checkpoint_path: 'model/hard_mnist_model'
+
+DATASET_path: 'dataset/fgsm'
+
+attack_eps: 0.1
