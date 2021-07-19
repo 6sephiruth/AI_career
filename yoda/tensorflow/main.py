@@ -98,22 +98,7 @@ mnist_model.trainable = False
 ATTACK_EPS = params_loaded['attack_eps']
 
 
-particular_num = 0
-
-particular_num = np.where(y_test == particular_num)
-
-for i in range(30):
-
-    for j in range(10):
-
-        data = targeted_cw(mnist_model, x_test[particular_num[0][i]], j)
-        result = np.argmax(mnist_model(tf.expand_dims(data, 0)))
-        
-        print(result)
-
-    print("--------------------")    
-    print("현재 숫자   ", particular_num[0][i])
-
+cw_saliency_analysis(mnist_model)
 
 
 

@@ -12,4 +12,5 @@ mnist = tf.keras.datasets.mnist
 zero = np.where(Y_test == 0)
 
 for i in range(10):
-    print(i)
+    for j in range(10):
+        print("드디어 {} {}ㅇㅇㅇ".format(i, j))

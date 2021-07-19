@@ -11,6 +11,7 @@ from attribution import *
 
 import matplotlib.pyplot as plt
 
+import pickle
 import time
 
 def highlight_differnt_pixel(model, img, fgsm_eps):
@@ -133,6 +134,9 @@ def highlight_solo_pixel(model, img):
 
 def all_data_plot(model, eps):
 
+    # 이걸 내가 왜 짯는지 기억이 안난다.
+    # 주석좀 잘 달자.
+
     dataset = tf.keras.datasets.mnist
         
     (_, _), (x_test, y_test) = dataset.load_data()
@@ -202,3 +206,32 @@ def all_data_plot(model, eps):
         plt.imshow(data[1][i], cmap="gray")
         plt.axis('off')
         plt.savefig("data{}.png".format(i))
+
+
+def cw_saliency_analysis(model):
+
+    if exists(f'./dataset/targeted_cw_data'):
+        targeted_cw = pickle.load(open(f'./dataset/targeted_cw_data','rb'))
+
+    else:
+        dataset = tf.keras.datasets.mnist
+            
+        (_, _), (x_test, y_test) = dataset.load_data()
+
+        x_test = x_test.reshape((10000, 28, 28, 1))
+
+        x_test = x_test / 255.0
+
+        origin_data = np.zeros([10, 28, 28, 1])
+        targeted_cw = np.zeros([10, 10, 28, 28, 1])
+        # data2 = np.zeros([4, 10, 28, 28, 3])
+
+        origin_data[0], origin_data[1], origin_data[2], origin_data[3], origin_data[4], origin_data[5], origin_data[6], origin_data[7], origin_data[8], origin_data[9] = x_test[3], x_test[5], x_test[35], x_test[18], x_test[4], x_test[15], x_test[11], x_test[0], x_test[61], x_test[7]
+
+        for i in range(10):
+            for j in range(10):
+
+                targeted_cw[i][j] = targeted_cw(model, origin_data[i], j)
+                print("드디어 {}의 {} 끝났다.".format(i, j))
+                
+    pickle.dump(targeted_cw, open(f'./dataset/targeted_cw_data','wb'))
