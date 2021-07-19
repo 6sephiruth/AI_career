@@ -106,14 +106,6 @@ cw_saliency_analysis(mnist_model)
 
 
 
-
-
-
-
-# all_data_plot(mnist_model, ATTACK_EPS)
-
-
-
 # if exists(f'./dataset/saliency_train') and exists(f'./dataset/saliency_test'):
 #     g_train = pickle.load(open(f'./dataset/saliency_train','rb'))
 #     g_test = pickle.load(open(f'./dataset/saliency_test','rb'))
