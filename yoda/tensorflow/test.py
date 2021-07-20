@@ -3,13 +3,13 @@ import numpy as np
 
 from data_process import *
 
+import matplotlib.pyplot as plt
 
 
 mnist = tf.keras.datasets.mnist
 
 (X_train, Y_train), (X_test, Y_test) = mnist.load_data()
+X_train, X_test = X_train / 255.0, X_test / 255.0
 
-zero = np.where(Y_test == 0)
-
-k = np.zeros([10, 3, 3])
-print(k.shape)
+plt.imshow(X_test[0], cmap="Reds")
+plt.savefig("test.png")

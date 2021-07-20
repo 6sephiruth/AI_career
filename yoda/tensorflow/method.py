@@ -1,3 +1,4 @@
+from numpy.core.fromnumeric import argmax
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,18 +15,16 @@ import matplotlib.pyplot as plt
 import pickle
 import time
 
-def highlight_differnt_pixel(model, img, fgsm_eps):
+def highlight_differnt_saliency_pixel(origin_img, saliency_adv_img, saliency_origin_img):
 
-    saliency_img = eval('vanilla_saliency')(model, img)
+    # 방법 1 - 그냥 빼기
+    extraion_arr = saliency_adv_img - saliency_origin_img
 
-    fgsm_img = eval('untargeted_fgsm')(model, img, fgsm_eps)
+    # 방법 2 - absolute
+    # extraion_arr = np.abs(saliency_adv_img - saliency_origin_img)
 
-    predict = model.predict(tf.expand_dims(img, 0))
-    predict = np.argmax(predict)
 
-    fgsm_saliency_img = eval('specific_vanilla_saliency')(model, fgsm_img, predict)
 
-    extraion_arr = np.abs(saliency_img - fgsm_saliency_img)
     extraion_arr_reshpae = np.reshape(extraion_arr, (784))
 
     data_sort = np.sort(extraion_arr_reshpae)
@@ -33,7 +32,7 @@ def highlight_differnt_pixel(model, img, fgsm_eps):
     select_small = data_sort[:30]
     select_big = data_sort[-30:]
 
-    change_pixel = tf.expand_dims(img, 0)
+    change_pixel = tf.expand_dims(origin_img, 0)
     change_pixel = tf.image.grayscale_to_rgb(change_pixel)
     change_pixel = np.reshape(change_pixel, (28, 28, 3))
 
@@ -69,9 +68,6 @@ def highlight_differnt_pixel(model, img, fgsm_eps):
                 big_change_pixel[i][2] = 0
 
     big_change_pixel = np.reshape(big_change_pixel, (28, 28, 3))
-
-    # plt.imshow(big_change_pixel)
-    # plt.savefig("big_change_pixel.png")
 
     return small_change_pixel, big_change_pixel
 
@@ -162,7 +158,7 @@ def all_data_plot(model, eps):
         data2[0][i] = perturbation_low_light
         data2[1][i] = perturbation_high_light
 
-        diff_low_light, diff_high_light = highlight_differnt_pixel(model, data[0][i], eps)
+        diff_low_light, diff_high_light = highlight_differnt_saliency_pixel(model, data[0][i], eps)
         data2[2][i] = diff_low_light
         data2[3][i] = diff_high_light
 
@@ -210,30 +206,59 @@ def all_data_plot(model, eps):
 
 def cw_saliency_analysis(model):
 
+    dataset = tf.keras.datasets.mnist
+        
+    (_, _), (x_test, _) = dataset.load_data()
+
+    x_test = x_test.reshape((10000, 28, 28, 1))
+
+    x_test = x_test / 255.0
+
+
+    # targeted CW dataset 만들기
+    origin_data = np.zeros((10, 28, 28, 1))
+    targeted_cw_data = np.zeros((10, 10, 28, 28, 1))
+
+    origin_data[0], origin_data[1], origin_data[2], origin_data[3], origin_data[4], origin_data[5], origin_data[6], origin_data[7], origin_data[8], origin_data[9] = x_test[3], x_test[5], x_test[35], x_test[18], x_test[4], x_test[15], x_test[11], x_test[0], x_test[61], x_test[7]
+
     if exists(f'./dataset/targeted_cw_data'):
         targeted_cw_data = pickle.load(open(f'./dataset/targeted_cw_data','rb'))
 
     else:
-        dataset = tf.keras.datasets.mnist
-            
-        (_, _), (x_test, _) = dataset.load_data()
-
-        x_test = x_test.reshape((10000, 28, 28, 1))
-
-        x_test = x_test / 255.0
-
-        origin_data = np.zeros((10, 28, 28, 1))
-        targeted_cw_data = np.zeros((10, 10, 28, 28, 1))
-        # data2 = np.zeros([4, 10, 28, 28, 3])
-
-        origin_data[0], origin_data[1], origin_data[2], origin_data[3], origin_data[4], origin_data[5], origin_data[6], origin_data[7], origin_data[8], origin_data[9] = x_test[3], x_test[5], x_test[35], x_test[18], x_test[4], x_test[15], x_test[11], x_test[0], x_test[61], x_test[7]
-
 
         for i in range(10):
             for j in range(10):
 
                 targeted_cw_data[i][j] = targeted_cw(model, origin_data[i], j)
 
-                print("드디어 {}의 {} 끝났다.".format(i, j))
+                ###############################################################################
+                # target_result = model.predict(tf.expand_dims(targeted_cw_data[i][j], 0))
+                # target_result = np.argmax(target_result)
+
+                print("드디어 {}의 {} 끝났다.  ".format(i, j))
 
     pickle.dump(targeted_cw_data, open(f'./dataset/targeted_cw_data','wb'))
+
+
+    # 새로운 주석
+    saliency_origin_data = np.zeros((10, 28, 28, 1))
+    saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 1))
+
+    small_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
+    big_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
+
+    for i in range(10):
+        for j in range(10):
+
+            saliency_origin_data[i] = eval('vanilla_saliency')(model, origin_data[i])
+            saliency_targeted_cw_data[i][j] = eval('vanilla_saliency')(model, targeted_cw_data[i][j])
+
+
+            small_saliency_targeted_cw_data[i][j], big_saliency_targeted_cw_data[i][j] = highlight_differnt_saliency_pixel(origin_data[i], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
+
+    for i in range(10):
+        # for j in range(10):
+    
+        plt.imshow(saliency_origin_data[i], cmap="gray")
+        plt.axis('off')
+        plt.savefig("data{}.png".format(i))

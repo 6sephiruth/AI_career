@@ -98,10 +98,27 @@ mnist_model.trainable = False
 ATTACK_EPS = params_loaded['attack_eps']
 
 
-cw_saliency_analysis(mnist_model)
+# cw_saliency_analysis(mnist_model)
 
+i = 0
 
+data = np.where(y_test == i)
 
+for i in range(100):
+    i + 10
+    for j in range(10):
+        
+        result = targeted_cw(mnist_model, x_test[data[0][i]], j)
+        result = mnist_model.predict(tf.expand_dims(result, 0))
+        result = np.argmax(result)
+
+        print("{}의  {} 결과는 이것입니돠 {} ".format(i, j, result))
+
+        if result != j:
+            break
+
+    print("------------------")
+    print(data[0][i])
 
 
 
