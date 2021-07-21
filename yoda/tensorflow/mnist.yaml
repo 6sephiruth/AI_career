@@ -4,7 +4,7 @@ dataset: 'mnist_data'
 model_train: 'mni_cnn'
 
 
-gpu_num: "2, 3"
+gpu_num: "3"
 attack_method: 'FGSM'
 
 MNIST_checkpoint_path: 'model/mnist_model'

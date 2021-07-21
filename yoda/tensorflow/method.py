@@ -17,11 +17,11 @@ import time
 
 def highlight_differnt_saliency_pixel(origin_img, saliency_adv_img, saliency_origin_img):
 
-    # 방법 1 - 그냥 빼기
-    extraion_arr = saliency_adv_img - saliency_origin_img
+    # # 방법 1 - 그냥 빼기
+    # extraion_arr = saliency_adv_img - saliency_origin_img
 
     # 방법 2 - absolute
-    # extraion_arr = np.abs(saliency_adv_img - saliency_origin_img)
+    extraion_arr = np.abs(saliency_adv_img - saliency_origin_img)
 
 
 
@@ -219,7 +219,7 @@ def cw_saliency_analysis(model):
     origin_data = np.zeros((10, 28, 28, 1))
     targeted_cw_data = np.zeros((10, 10, 28, 28, 1))
 
-    origin_data[0], origin_data[1], origin_data[2], origin_data[3], origin_data[4], origin_data[5], origin_data[6], origin_data[7], origin_data[8], origin_data[9] = x_test[3], x_test[5], x_test[35], x_test[18], x_test[4], x_test[15], x_test[11], x_test[0], x_test[61], x_test[7]
+    origin_data[0], origin_data[1], origin_data[2], origin_data[3], origin_data[4], origin_data[5], origin_data[6], origin_data[7], origin_data[8], origin_data[9] = x_test[101], x_test[2], x_test[390], x_test[18], x_test[24], x_test[406], x_test[88], x_test[80], x_test[177], x_test[235]
 
     if exists(f'./dataset/targeted_cw_data'):
         targeted_cw_data = pickle.load(open(f'./dataset/targeted_cw_data','rb'))
@@ -237,8 +237,7 @@ def cw_saliency_analysis(model):
 
                 print("드디어 {}의 {} 끝났다.  ".format(i, j))
 
-    pickle.dump(targeted_cw_data, open(f'./dataset/targeted_cw_data','wb'))
-
+        pickle.dump(targeted_cw_data, open(f'./dataset/targeted_cw_data','wb'))
 
     # 새로운 주석
     saliency_origin_data = np.zeros((10, 28, 28, 1))
@@ -256,9 +255,24 @@ def cw_saliency_analysis(model):
 
             small_saliency_targeted_cw_data[i][j], big_saliency_targeted_cw_data[i][j] = highlight_differnt_saliency_pixel(origin_data[i], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
 
+    red_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
+
+    # for i in range(10):
+    #     for j in range(10):
+
+    #         change_result = np.abs(saliency_targeted_cw_data[i][j] - saliency_origin_data[i])
+
+    #         change_pixel = tf.expand_dims(change_result, 0)
+    #         change_pixel = tf.image.grayscale_to_rgb(change_pixel)
+    #         change_pixel = np.reshape(change_pixel, (28, 28, 3))
+    #         red_saliency_targeted_cw_data[i][j] =change_pixel
+
+
     for i in range(10):
-        # for j in range(10):
-    
-        plt.imshow(saliency_origin_data[i], cmap="gray")
-        plt.axis('off')
-        plt.savefig("data{}.png".format(i))
+        for j in range(10):
+
+            plt.imshow(big_saliency_targeted_cw_data[i][j])
+
+            # plt.imshow(red_saliency_targeted_cw_data[i][j], cmap="Reds")
+            plt.axis('off')
+            plt.savefig("data{}_{}.png".format(i, j))

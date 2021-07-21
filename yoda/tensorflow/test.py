@@ -11,5 +11,4 @@ mnist = tf.keras.datasets.mnist
 (X_train, Y_train), (X_test, Y_test) = mnist.load_data()
 X_train, X_test = X_train / 255.0, X_test / 255.0
 
-plt.imshow(X_test[0], cmap="Reds")
-plt.savefig("test.png")
+print(np.where(Y_test == 0))
