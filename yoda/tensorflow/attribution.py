@@ -32,3 +32,20 @@ def grad(model, img):
 
     return tf.reshape(attr, (*attr.shape, 1))
 
+def ig(model, img):
+
+
+    pred = model(np.array([img]))
+    pred_cls = np.argmax(pred[0])
+    args = {'model': model, 'class': pred_cls}
+
+    integrated_gradients = saliency.IntegratedGradients()
+
+    baseline = np.zeros(img.shape)
+    
+    attr = integrated_gradients.GetMask(
+      img, model_fn, args, x_steps=25, x_baseline=baseline, batch_size=20)
+
+    attr = saliency.VisualizeImageGrayscale(attr)
+    
+    return tf.reshape(attr, (*attr.shape, 1))
