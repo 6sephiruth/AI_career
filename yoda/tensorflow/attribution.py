@@ -21,7 +21,7 @@ def model_fn(images, call_model_args, expected_keys=None):
             return {saliency.base.CONVOLUTION_LAYER_VALUES: conv,
                     saliency.base.CONVOLUTION_OUTPUT_GRADIENTS: gradients}
 
-def grad(model, img):
+def vanilla_saliency(model, img):
     pred = model(np.array([img]))
     pred_cls = np.argmax(pred[0])
     args = {'model': model, 'class': pred_cls}
@@ -33,19 +33,40 @@ def grad(model, img):
     return tf.reshape(attr, (*attr.shape, 1))
 
 def ig(model, img):
+    pred = model(np.array([img]))
+    pred_cls = np.argmax(pred[0])
+    args = {'model': model, 'class': pred_cls}
 
+    baseline = np.zeros(img.shape)
+    ig = saliency.IntegratedGradients()
+    attr = ig.GetMask(img, model_fn, args, x_steps=25, x_baseline=baseline, batch_size=20)
+    attr = saliency.VisualizeImageGrayscale(attr)
+
+    return tf.reshape(attr, (*attr.shape, 1))
+
+def smooth_saliency(model, img):
+    pred = model(np.array([img]))
+    pred_cls = np.argmax(pred[0])
+    args = {'model': model, 'class': pred_cls}
+
+    smooth_grad = saliency.GradientSaliency()
+    smooth_attr = smooth_grad.GetSmoothedMask(img, model_fn, args)
+    smooth_attr = saliency.VisualizeImageGrayscale(smooth_attr)
+
+    return tf.reshape(smooth_attr, (*smooth_attr.shape, 1))
+
+def smooth_ig(model, img):
 
     pred = model(np.array([img]))
     pred_cls = np.argmax(pred[0])
     args = {'model': model, 'class': pred_cls}
 
-    integrated_gradients = saliency.IntegratedGradients()
-
     baseline = np.zeros(img.shape)
-    
-    attr = integrated_gradients.GetMask(
-      img, model_fn, args, x_steps=25, x_baseline=baseline, batch_size=20)
+    smooth_ig = saliency.IntegratedGradients()
 
-    attr = saliency.VisualizeImageGrayscale(attr)
-    
-    return tf.reshape(attr, (*attr.shape, 1))
+    smooth_attr = smooth_ig.GetSmoothedMask(
+        img, model_fn, args, x_steps=25, x_baseline=baseline, batch_size=20)
+
+    smooth_attr = saliency.VisualizeImageGrayscale(smooth_attr)
+
+    return tf.reshape(smooth_attr, (*smooth_attr.shape, 1))

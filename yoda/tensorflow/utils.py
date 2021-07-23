@@ -1,9 +1,23 @@
 import os
 import smtplib
+import tensorflow as tf
 
 from email.mime.text import MIMEText
 
 
+def mnist_data():
+    
+    dataset = tf.keras.datasets.mnist
+        
+    (x_train, y_train), (x_test, y_test) = dataset.load_data()
+
+    x_train = x_train.reshape((60000, 28, 28, 1))
+    x_test = x_test.reshape((10000, 28, 28, 1))
+
+    # 이미지를 0~1의 범위로 낮추기 위한 Normalization
+    x_train, x_test = x_train / 255.0, x_test / 255.0
+
+    return (x_train, y_train), (x_test, y_test)
 
 def exists(pathname):
     return os.path.exists(pathname)
