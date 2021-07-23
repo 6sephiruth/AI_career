@@ -101,8 +101,6 @@ ATTACK_EPS = params_loaded['attack_eps']
 
 
 
-
-
 # i = 0
 
 # data = np.where(y_test == i)
