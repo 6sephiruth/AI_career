@@ -1,16 +1,14 @@
-from numpy.core.fromnumeric import argmax
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 
-from cleverhans.tf2.attacks.fast_gradient_method import fast_gradient_method
+# from cleverhans.tf2.attacks.fast_gradient_method import fast_gradient_method
 
 from models import *
 from utils import *
 from ad_attack import *
 from attribution import *
 
-import matplotlib.pyplot as plt
 
 from tqdm import trange
 
@@ -51,6 +49,9 @@ def highlight_differnt_saliency_pixel(origin_img, saliency_adv_img, saliency_ori
         for j in range(30):
 
             if extraion_arr_reshpae[i] == select_small[j]:
+
+                # select_small[j] = 99999  # 겹쳐지는거 방지할라고? 응급 처치 ㅋ
+
                 small_change_pixel[i][0] = 0.5
                 small_change_pixel[i][1] = 0
                 small_change_pixel[i][2] = 0
@@ -65,6 +66,9 @@ def highlight_differnt_saliency_pixel(origin_img, saliency_adv_img, saliency_ori
         for j in range(30):
 
             if extraion_arr_reshpae[i] == select_big[j]:
+
+                select_big[j] = 99999  # 겹쳐지는거 방지할라고? 응급 처치 ㅋ
+
                 big_change_pixel[i][0] = 0
                 big_change_pixel[i][1] = 0.5
                 big_change_pixel[i][2] = 0
@@ -94,6 +98,7 @@ def highlight_solo_pixel(model, img):
 
     small_change_pixel = change_pixel.copy()
     big_change_pixel = change_pixel.copy()
+
 
     small_change_pixel.setflags(write=1)
     big_change_pixel.setflags(write=1)
@@ -241,40 +246,43 @@ def cw_saliency_analysis(model):
 
         pickle.dump(targeted_cw_data, open(f'./dataset/targeted_cw_data','wb'))
 
-    # # 새로운 주석
-    # saliency_origin_data = np.zeros((10, 28, 28, 1))
-    # saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 1))
+    perturbation_cw_data = np.zeros((10, 10, 28, 28, 1))
 
-    # small_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
-    # big_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
+    # 새로운 주석
+    saliency_origin_data = np.zeros((10, 28, 28, 1))
+    saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 1))
 
-    # for i in range(10):
-    #     for j in range(10):
+    small_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
+    big_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
 
-    #         saliency_origin_data[i] = eval('vanilla_saliency')(model, origin_data[i])
-    #         saliency_targeted_cw_data[i][j] = eval('vanilla_saliency')(model, targeted_cw_data[i][j])
+    for i in range(10):
+        for j in range(10):
 
+            perturbation_cw_data[i][j] = targeted_cw_data[i][j] - origin_data[i]
 
-    #         small_saliency_targeted_cw_data[i][j], big_saliency_targeted_cw_data[i][j] = highlight_differnt_saliency_pixel(origin_data[i], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
+            saliency_origin_data[i] = eval('vanilla_saliency')(model, origin_data[i])
+            saliency_targeted_cw_data[i][j] = eval('vanilla_saliency')(model, targeted_cw_data[i][j])
 
-    # red_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
+            small_saliency_targeted_cw_data[i][j], big_saliency_targeted_cw_data[i][j] = highlight_differnt_saliency_pixel(origin_data[i], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
 
-    # # for i in range(10):
-    # #     for j in range(10):
-
-    # #         change_result = np.abs(saliency_targeted_cw_data[i][j] - saliency_origin_data[i])
-
-    # #         change_pixel = tf.expand_dims(change_result, 0)
-    # #         change_pixel = tf.image.grayscale_to_rgb(change_pixel)
-    # #         change_pixel = np.reshape(change_pixel, (28, 28, 3))
-    # #         red_saliency_targeted_cw_data[i][j] =change_pixel
-
+    red_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
 
     # for i in range(10):
     #     for j in range(10):
 
-    #         plt.imshow(big_saliency_targeted_cw_data[i][j])
+    #         change_result = np.abs(saliency_targeted_cw_data[i][j] - saliency_origin_data[i])
 
-    #         # plt.imshow(red_saliency_targeted_cw_data[i][j], cmap="Reds")
-    #         plt.axis('off')
-    #         plt.savefig("data{}_{}.png".format(i, j))
+    #         change_pixel = tf.expand_dims(change_result, 0)
+    #         change_pixel = tf.image.grayscale_to_rgb(change_pixel)
+    #         change_pixel = np.reshape(change_pixel, (28, 28, 3))
+    #         red_saliency_targeted_cw_data[i][j] =change_pixel
+
+
+    for i in range(10):
+        for j in range(10):
+
+            plt.imshow(big_saliency_targeted_cw_data[i][j])
+
+            # plt.imshow(red_saliency_targeted_cw_data[i][j], cmap="Reds")
+            plt.axis('off')
+            plt.savefig("data{}_{}.png".format(i, j))
