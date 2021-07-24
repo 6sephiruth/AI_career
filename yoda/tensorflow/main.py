@@ -92,30 +92,3 @@ else:
 mnist_model.trainable = False
 
 ATTACK_EPS = params_loaded['attack_eps']
-
-
-### untargeted_MIM 만들기
-if exists(f'./{ATTACK_load_path}/{ATTACK_EPS}_test') and exists(f'./{ATTACK_load_path}/{ATTACK_EPS}_label'):
-    attack_test = pickle.load(open(f'./{ATTACK_load_path}/{ATTACK_EPS}_test','rb'))
-    attack_label = pickle.load(open(f'./{ATTACK_load_path}/{ATTACK_EPS}_label','rb'))
-
-else:
-    attack_test, attack_label = [], []
-
-    for i in trange(len(x_test)):
-        
-        adv_data = eval('untargeted_mim')(mnist_model, x_test[i], ATTACK_EPS) # (28, 28, 1)
-        attack_test.append(adv_data)
-
-        pred_adv_data = mnist_model.predict(tf.expand_dims(adv_data, 0))
-        pred_adv_data = np.argmax(pred_adv_data)
-
-        if y_test[i] != pred_adv_data:
-            attack_label.append(1)
-        else:
-            attack_label.append(0)
-
-    attack_test, attack_label = np.array(attack_test), np.array(attack_label)
-
-    pickle.dump(attack_test, open(f'./{ATTACK_load_path}/{ATTACK_EPS}_test','wb'))
-    pickle.dump(attack_label, open(f'./{ATTACK_load_path}/{ATTACK_EPS}_label','wb'))
