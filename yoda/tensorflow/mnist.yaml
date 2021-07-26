@@ -1,15 +1,12 @@
 batch_size: 64
 
-dataset: 'mnist' # cifar10
+dataset: 'cifar10' # cifar10
 
 # model.py 참조
-model_train: 'mnist_cnn' 
+model_train: 'cifar_vgg16' 
 
 
 gpu_num: "2, 3"
 attack_method: 'MIM'
-
-MNIST_checkpoint_path: 'model/mnist_model'
-
 
 attack_eps: 0.2

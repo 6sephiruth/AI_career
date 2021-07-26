@@ -15,14 +15,13 @@ from tqdm import trange
 import pickle
 import time
 
-def highlight_differnt_saliency_pixel(origin_img, saliency_adv_img, saliency_origin_img):
+def highlight_differnt_saliency_pixel(origin_img, targeted_cw_img, saliency_adv_img, saliency_origin_img):
 
     # # 방법 1 - 그냥 빼기
     # extraion_arr = saliency_adv_img - saliency_origin_img
 
     # 방법 2 - absolute
     extraion_arr = np.abs(saliency_adv_img - saliency_origin_img)
-
 
 
     extraion_arr_reshpae = np.reshape(extraion_arr, (784))
@@ -45,6 +44,21 @@ def highlight_differnt_saliency_pixel(origin_img, saliency_adv_img, saliency_ori
     small_change_pixel = np.reshape(small_change_pixel, (784, 3))
     big_change_pixel = np.reshape(big_change_pixel, (784, 3))
 
+    #########################################################
+
+    perturbation_cw_data = targeted_cw_img - origin_img
+
+    perturbation_background = tf.expand_dims(perturbation_cw_data, 0)
+    perturbation_background = tf.image.grayscale_to_rgb(perturbation_background)
+    perturbation_background = np.reshape(perturbation_background, (28, 28, 3))
+
+    small_perturbation_pixel = change_pixel.copy()
+    big_perturbation_pixel = change_pixel.copy()
+    
+    small_perturbation_pixel = np.reshape(small_perturbation_pixel, (784, 3))
+    big_perturbation_pixel = np.reshape(big_perturbation_pixel, (784, 3))
+
+
     for i in range(784):
         for j in range(30):
 
@@ -56,11 +70,14 @@ def highlight_differnt_saliency_pixel(origin_img, saliency_adv_img, saliency_ori
                 small_change_pixel[i][1] = 0
                 small_change_pixel[i][2] = 0
 
+                small_perturbation_pixel[i][0] = 0.5
+                small_perturbation_pixel[i][1] = 0
+                small_perturbation_pixel[i][2] = 0
+
 
     small_change_pixel = np.reshape(small_change_pixel, (28, 28, 3))
+    small_perturbation_pixel = np.reshape(small_perturbation_pixel, (28, 28, 3))
 
-    # plt.imshow(small_change_pixel)
-    # plt.savefig("small_change_pixel.png")
 
     for i in range(784):
         for j in range(30):
@@ -73,9 +90,15 @@ def highlight_differnt_saliency_pixel(origin_img, saliency_adv_img, saliency_ori
                 big_change_pixel[i][1] = 0.5
                 big_change_pixel[i][2] = 0
 
-    big_change_pixel = np.reshape(big_change_pixel, (28, 28, 3))
+                big_perturbation_pixel[i][0] = 0
+                big_perturbation_pixel[i][1] = 0.5
+                big_perturbation_pixel[i][2] = 0
 
-    return small_change_pixel, big_change_pixel
+
+    big_change_pixel = np.reshape(big_change_pixel, (28, 28, 3))
+    big_perturbation_pixel = np.reshape(big_perturbation_pixel, (28, 28, 3))
+
+    return small_perturbation_pixel, big_perturbation_pixel, small_change_pixel, big_change_pixel
 
 def highlight_solo_pixel(model, img):
     
@@ -255,15 +278,19 @@ def cw_saliency_analysis(model):
     small_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 작은 픽셀 30개 고르기
     big_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 큰 픽셀 30개 고르기
 
+    small_perturbation_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 작은 픽셀 Overlab
+    big_perturbation_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 큰 픽셀 Overlab
+
+
     for i in range(10):
         for j in range(10):
 
-            perturbation_cw_data[i][j] = targeted_cw_data[i][j] - origin_data[i]
+            # perturbation_cw_data[i][j] = targeted_cw_data[i][j] - origin_data[i]
 
             saliency_origin_data[i] = eval('vanilla_saliency')(model, origin_data[i])
             saliency_targeted_cw_data[i][j] = eval('vanilla_saliency')(model, targeted_cw_data[i][j])
 
-            small_saliency_targeted_cw_data[i][j], big_saliency_targeted_cw_data[i][j] = highlight_differnt_saliency_pixel(origin_data[i], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
+            small_perturbation_targeted_cw_data[i][j], big_perturbation_targeted_cw_data[i][j], small_saliency_targeted_cw_data[i][j], big_saliency_targeted_cw_data[i][j] = highlight_differnt_saliency_pixel(origin_data[i], targeted_cw_data[i][j], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
 
     red_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
 

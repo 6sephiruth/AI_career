@@ -38,15 +38,15 @@ physical_devices = tf.config.list_physical_devices('GPU')
 for d in physical_devices:
     tf.config.experimental.set_memory_growth(d, True)
 
+os.environ['TF_DETERMINISTIC_OPS'] = '0'
+
+
 ATTACK_METHOD = params_loaded['attack_method']
 DATASET = params_loaded['dataset']
 
-os.environ['TF_DETERMINISTIC_OPS'] = '0'
-
 datadir = ['model', 'model/' + DATASET, 'dataset', 'dataset/' + ATTACK_METHOD]
-mkdir(datadir)  #    MNIST_checkpoint_path
+mkdir(datadir)
 
-ATTACK_load_path = f'dataset/{ATTACK_METHOD}'
 ATTACK_EPS = params_loaded['attack_eps']
 
 # dataset load
@@ -56,8 +56,8 @@ if DATASET == 'mnist':
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
 elif DATASET == 'cifar10':
-    train, test = mnist_data()
-
+    train, test = cifar10_data()
+    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     
 x_train, y_train = train
 x_test, y_test = test
@@ -68,7 +68,7 @@ checkpoint_path = f'model/{DATASET}'
 
 if exists(f'model/{DATASET}/saved_model.pb'):
 
-    mnist_model = tf.keras.models.load_model(checkpoint_path)
+    model = tf.keras.models.load_model(checkpoint_path)
 
 else:
 
@@ -86,17 +86,20 @@ else:
 
         model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
     
-    if DATASET == 'cifar':
+    if DATASET == 'cifar10':
 
         model.compile(optimizer='adam',
                     loss='sparse_categorical_crossentropy',
                     metrics=['accuracy'])
 
-        model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
+        model.fit(x_train, y_train, epochs=40, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
 
     model.save(checkpoint_path)
     model = tf.keras.models.load_model(checkpoint_path)
 
 model.trainable = False
+
+model.evaluate(x_test, y_test)
+
 
 # cw_saliency_analysis(model)

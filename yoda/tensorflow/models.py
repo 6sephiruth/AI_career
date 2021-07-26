@@ -79,7 +79,7 @@ class mnist_dnn(Model):
 class cifar_vgg16(Model):
 
     def __init__(self):
-        super(mnist_dnn, self).__init__()
+        super(cifar_vgg16, self).__init__()
         self.model = self.build_model()
     
     def build_model(self):
@@ -91,7 +91,6 @@ class cifar_vgg16(Model):
         model.add(transfer_model)
         model.add(Dropout(0.5))
         model.add(Dense(512, activation='relu'))
-        model.add(Dense(128, activation='relu'))
         model.add(Dense(10, activation='softmax'))
 
         return model
