@@ -50,7 +50,7 @@ def highlight_differnt_saliency_pixel(origin_img, saliency_adv_img, saliency_ori
 
             if extraion_arr_reshpae[i] == select_small[j]:
 
-                # select_small[j] = 99999  # 겹쳐지는거 방지할라고? 응급 처치 ㅋ
+                select_small[j] = 99999  # 겹쳐지는거 방지할라고? 응급 처치 ㅋ
 
                 small_change_pixel[i][0] = 0.5
                 small_change_pixel[i][1] = 0
@@ -246,14 +246,14 @@ def cw_saliency_analysis(model):
 
         pickle.dump(targeted_cw_data, open(f'./dataset/targeted_cw_data','wb'))
 
-    perturbation_cw_data = np.zeros((10, 10, 28, 28, 1))
+    perturbation_cw_data = np.zeros((10, 10, 28, 28, 1)) # perturbation 이미지
 
     # 새로운 주석
-    saliency_origin_data = np.zeros((10, 28, 28, 1))
-    saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 1))
+    saliency_origin_data = np.zeros((10, 28, 28, 1)) # 원본 이미지의 saliency map
+    saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 1)) # 타겟 이미지의 saliency map
 
-    small_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
-    big_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
+    small_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 작은 픽셀 30개 고르기
+    big_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 큰 픽셀 30개 고르기
 
     for i in range(10):
         for j in range(10):
@@ -267,21 +267,12 @@ def cw_saliency_analysis(model):
 
     red_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
 
-    # for i in range(10):
-    #     for j in range(10):
-
-    #         change_result = np.abs(saliency_targeted_cw_data[i][j] - saliency_origin_data[i])
-
-    #         change_pixel = tf.expand_dims(change_result, 0)
-    #         change_pixel = tf.image.grayscale_to_rgb(change_pixel)
-    #         change_pixel = np.reshape(change_pixel, (28, 28, 3))
-    #         red_saliency_targeted_cw_data[i][j] =change_pixel
 
 
     for i in range(10):
         for j in range(10):
 
-            plt.imshow(big_saliency_targeted_cw_data[i][j])
+            plt.imshow(small_saliency_targeted_cw_data[i][j])
 
             # plt.imshow(red_saliency_targeted_cw_data[i][j], cmap="Reds")
             plt.axis('off')

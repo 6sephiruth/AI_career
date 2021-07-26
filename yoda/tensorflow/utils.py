@@ -1,6 +1,7 @@
 import os
 import smtplib
 import tensorflow as tf
+import numpy as np
 
 from email.mime.text import MIMEText
 
@@ -18,6 +19,23 @@ def mnist_data():
     x_train, x_test = x_train / 255.0, x_test / 255.0
 
     return (x_train, y_train), (x_test, y_test)
+
+def cifar10_data():
+
+    dataset = tf.keras.datasets.cifar10
+
+    (x_train, y_train), (x_test, y_test) = dataset.load_data()
+    
+    x_train = x_train.reshape((50000, 32, 32, 3))
+    x_test = x_test.reshape((10000, 32, 32, 3))
+
+    # MIN, MAX normalization
+    x_train = (x_train - np.min(x_train))/ (np.max(x_train) - np.min(x_train))
+    x_test = (x_test - np.min(x_test))/ (np.max(x_test) - np.min(x_test))
+    
+    return (x_train, y_train), (x_test, y_test)
+
+
 
 def exists(pathname):
     return os.path.exists(pathname)

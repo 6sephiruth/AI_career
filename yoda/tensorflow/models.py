@@ -3,10 +3,11 @@ from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import *
 from tensorflow.keras import layers
 
+from keras.applications.vgg16 import VGG16
 
-class mni_cnn2(Model):
+class mnist_cnn2(Model):
     def __init__(self):
-        super(mni_cnn, self).__init__()
+        super(mnist_cnn2, self).__init__()
         self.conv1 = Conv2D(32, 3, activation='relu')
         self.flatten = Flatten()
         self.d1 = Dense(128, activation='relu')
@@ -18,9 +19,9 @@ class mni_cnn2(Model):
         x = self.d1(x)
         return self.d2(x)
 
-class mni_cnn(Model):
+class mnist_cnn(Model):
     def __init__(self):
-        super(mni_cnn, self).__init__()
+        super(mnist_cnn, self).__init__()
         self.model = self.build_model()
 
     def build_model(self):
@@ -49,9 +50,9 @@ class mni_cnn(Model):
     def predict_classes(self, inputs):
         return self.model.predict_classes(inputs)
 
-class mni_dnn(Model):
+class mnist_dnn(Model):
     def __init__(self):
-        super(mni_dnn, self).__init__()
+        super(mnist_dnn, self).__init__()
         self.model = self.build_model()
     
     def build_model(self):
@@ -75,6 +76,31 @@ class mni_dnn(Model):
     def predict_classes(self, inputs):
         return self.model.predict_classes(inputs)
 
+class cifar_vgg16(Model):
+
+    def __init__(self):
+        super(mnist_dnn, self).__init__()
+        self.model = self.build_model()
+    
+    def build_model(self):
+
+        transfer_model = VGG16(weights='imagenet', include_top=False, input_shape=(32, 32, 3))
+        transfer_model.trainable = False
+
+        model = Sequential()
+        model.add(transfer_model)
+        model.add(Dropout(0.5))
+        model.add(Dense(512, activation='relu'))
+        model.add(Dense(128, activation='relu'))
+        model.add(Dense(10, activation='softmax'))
+
+        return model
+
+    def call(self, inputs):
+        return self.model(inputs)
+
+    def predict_classes(self, inputs):
+        return self.model.predict_classes(inputs)
 
 
 class AnomalyDetector(Model):

@@ -5,8 +5,8 @@ import tensorflow as tf
 import numpy as np
 from keras.callbacks import ModelCheckpoint
 
+
 import time
-import shap
 
 from models import *
 from utils import *
@@ -17,9 +17,6 @@ from method import *
 from tqdm import trange
 
 import pickle
-
-import matplotlib.pyplot as plt
-import matplotlib.image as img
 
 seed = 0
 tf.random.set_seed(seed)
@@ -37,58 +34,69 @@ os.environ['CUDA_VISIBLE_DEVICES'] = params_loaded['gpu_num']
 
 # enable memory growth
 physical_devices = tf.config.list_physical_devices('GPU')
+
 for d in physical_devices:
     tf.config.experimental.set_memory_growth(d, True)
 
-HARD_MNIST_checkpoint_path = params_loaded['HARD_MNIST_checkpoint_path']
-MNIST_checkpoint_path = params_loaded['MNIST_checkpoint_path']
 ATTACK_METHOD = params_loaded['attack_method']
+DATASET = params_loaded['dataset']
 
 os.environ['TF_DETERMINISTIC_OPS'] = '0'
 
-datadir = ['model', MNIST_checkpoint_path, 'dataset', HARD_MNIST_checkpoint_path, 'dataset/'+ATTACK_METHOD]
-mkdir(datadir)
+datadir = ['model', 'model/' + DATASET, 'dataset', 'dataset/' + ATTACK_METHOD]
+mkdir(datadir)  #    MNIST_checkpoint_path
 
 ATTACK_load_path = f'dataset/{ATTACK_METHOD}'
+ATTACK_EPS = params_loaded['attack_eps']
 
 # dataset load
-if params_loaded['dataset'] == 'mnist_data':
+if DATASET == 'mnist':
     
-    train, test = eval(params_loaded['dataset'])()
-else:
-    print("other dataset")
+    train, test = mnist_data()
+    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+
+elif DATASET == 'cifar10':
+    train, test = mnist_data()
 
     
 x_train, y_train = train
 x_test, y_test = test
 
-mnist_model = eval(params_loaded['model_train'])()
+model = eval(params_loaded['model_train'])()
 
+checkpoint_path = f'model/{DATASET}'
 
+if exists(f'model/{DATASET}/saved_model.pb'):
 
-loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-
-if exists(f'{MNIST_checkpoint_path}/saved_model.pb'):
-
-    mnist_model = tf.keras.models.load_model(MNIST_checkpoint_path)
+    mnist_model = tf.keras.models.load_model(checkpoint_path)
 
 else:
 
     # MNIST 학습 checkpoint
-    checkpoint = ModelCheckpoint(MNIST_checkpoint_path, 
+    checkpoint = ModelCheckpoint(checkpoint_path, 
                                 save_best_only=True, 
                                 save_weights_only=True, 
                                 monitor='val_loss',
                                 verbose=1)
+    if DATASET == 'mnist':
 
-    mnist_model.compile(optimizer='adam',
-                loss='sparse_categorical_crossentropy',
-                metrics=['accuracy'])
-    mnist_model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
+        model.compile(optimizer='adam',
+                    loss='sparse_categorical_crossentropy',
+                    metrics=['accuracy'])
 
-    mnist_model.save(MNIST_checkpoint_path)
-    mnist_model = tf.keras.models.load_model(MNIST_checkpoint_path)
+        model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
+    
+    if DATASET == 'cifar':
 
-mnist_model.trainable = False
+        model.compile(optimizer='adam',
+                    loss='sparse_categorical_crossentropy',
+                    metrics=['accuracy'])
 
-ATTACK_EPS = params_loaded['attack_eps']
+        model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
+
+    model.save(checkpoint_path)
+    model = tf.keras.models.load_model(checkpoint_path)
+
+model.trainable = False
+
+# cw_saliency_analysis(model)

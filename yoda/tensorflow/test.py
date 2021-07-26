@@ -17,4 +17,3 @@ X_train, X_test = X_train / 255.0, X_test / 255.0
 
 targeted_cw = pickle.load(open(f'./dataset/targeted_cw_data','rb'))
 
-for i in range(100)
