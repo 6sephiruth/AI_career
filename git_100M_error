@@ -1,0 +1,4 @@
+cd ../
+java -jar bfg.jar --strip-blobs-bigger-than 100M ++++++git_folder
+cd git_forder
+git reflog expire --expire=now --all && git gc --prune=now --aggressive
