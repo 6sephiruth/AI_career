@@ -7,7 +7,7 @@ model_train: 'mnist_cnn'
 # model_train: 'cifar_vgg16' 
 
 
-gpu_num: "2, 3"
+gpu_num: "3"
 attack_method: 'MIM'
 
 attack_eps: 0.2

@@ -46,6 +46,14 @@ def highlight_differnt_saliency_pixel(origin_img, targeted_cw_img, saliency_adv_
 
     perturbation_cw_data = (targeted_cw_img - origin_img)
 
+    # perturbation_cw_data = np.reshape(perturbation_cw_data, (-1))
+
+    # for i in range(len(perturbation_cw_data)):
+
+    #     if perturbation_cw_data[i] != 0:
+    #         perturbation_cw_data[i] += 0.1
+    # perturbation_cw_data = np.reshape(perturbation_cw_data, (28, 28, 1))    
+
     perturbation_background = tf.expand_dims(perturbation_cw_data, 0)
     perturbation_background = tf.image.grayscale_to_rgb(perturbation_background)
     perturbation_background = np.reshape(perturbation_background, (28, 28, 3))
@@ -137,6 +145,15 @@ def abs_highlight_differnt_saliency_pixel(origin_img, targeted_cw_img, saliency_
     #########################################################
 
     perturbation_cw_data = (targeted_cw_img - origin_img)
+
+    # perturbation_cw_data = np.reshape(perturbation_cw_data, (-1))
+
+    # for i in range(len(perturbation_cw_data)):
+
+    #     if perturbation_cw_data[i] != 0:
+    #         perturbation_cw_data[i] += 0.1
+    # perturbation_cw_data = np.reshape(perturbation_cw_data, (28, 28, 1))
+
 
     perturbation_background = tf.expand_dims(perturbation_cw_data, 0)
     perturbation_background = tf.image.grayscale_to_rgb(perturbation_background)
@@ -421,7 +438,7 @@ def cw_saliency_analysis(model):
             axs[3, j].axis('off')
 
             axs[4, j].imshow(small_perturbation_targeted_cw_data[i][j], cmap="gray")
-            axs[4, j].set_title("(Overlab low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[4, j].set_title("(O low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
             axs[4, j].axis('off')
 
             axs[5, j].imshow(big_saliency_targeted_cw_data[i][j], cmap="gray")
@@ -429,7 +446,7 @@ def cw_saliency_analysis(model):
             axs[5, j].axis('off')
 
             axs[6, j].imshow(big_perturbation_targeted_cw_data[i][j], cmap="gray")
-            axs[6, j].set_title("(Overlab high) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[6, j].set_title("(O high) SA - SO {}".format(j), fontsize=25, fontweight='bold')
             axs[6, j].axis('off')
 
             axs[7, j].imshow(abs_small_saliency_targeted_cw_data[i][j], cmap="gray")
@@ -437,7 +454,7 @@ def cw_saliency_analysis(model):
             axs[7, j].axis('off')
 
             axs[8, j].imshow(abs_small_perturbation_targeted_cw_data[i][j], cmap="gray")
-            axs[8, j].set_title("(Overlab abs low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[8, j].set_title("(O abs low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
             axs[8, j].axis('off')
 
             axs[9, j].imshow(abs_big_saliency_targeted_cw_data[i][j], cmap="gray")
@@ -445,7 +462,15 @@ def cw_saliency_analysis(model):
             axs[9, j].axis('off')
 
             axs[10, j].imshow(abs_big_perturbation_targeted_cw_data[i][j], cmap="gray")
-            axs[10, j].set_title("(Overlab abs high) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[10, j].set_title("(O abs high) SA - SO {}".format(j), fontsize=25, fontweight='bold')
             axs[10, j].axis('off')
 
         fig.savefig("./img/{}.png".format(i))
+    
+    for i in range(10):
+        for j in range(10):
+            pred = model.predict(tf.expand_dims(targeted_cw_data[i][j], 0))
+            pred = np.argmax(pred)
+
+            print("{}   {}    {} ".format(i, j, pred))
+        print("-----------------")
