@@ -301,6 +301,6 @@ def cw_saliency_analysis(model):
 
             plt.imshow(small_saliency_targeted_cw_data[i][j])
 
-            # plt.imshow(red_saliency_targeted_cw_data[i][j], cmap="Reds")
+            plt.imshow(red_saliency_targeted_cw_data[i][j], cmap="Reds")
             plt.axis('off')
             plt.savefig("data{}_{}.png".format(i, j))
