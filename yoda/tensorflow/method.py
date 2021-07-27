@@ -385,6 +385,9 @@ def cw_saliency_analysis(model):
 
     perturbation_cw_data = np.zeros((10, 10, 28, 28, 3)) # perturbation 이미지
     abs_perturbation_cw_data = np.zeros((10, 10, 28, 28, 3)) # perturbation 이미지
+    
+    for i in range(10):
+        targeted_cw_data[i][i] = origin_data[i]
 
     for i in range(10):
         for j in range(10):
@@ -393,47 +396,56 @@ def cw_saliency_analysis(model):
             saliency_targeted_cw_data[i][j] = eval('vanilla_saliency')(model, targeted_cw_data[i][j])
 
             perturbation_cw_data[i][j], small_perturbation_targeted_cw_data[i][j], big_perturbation_targeted_cw_data[i][j], small_saliency_targeted_cw_data[i][j], big_saliency_targeted_cw_data[i][j] = highlight_differnt_saliency_pixel(origin_data[i], targeted_cw_data[i][j], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
-            abs_perturbation_cw_data[i][j], abs_small_perturbation_targeted_cw_data[i][j], abs_big_perturbation_targeted_cw_data[i][j], abs_small_saliency_targeted_cw_data[i][j], abs_big_saliency_targeted_cw_data[i][j] = abs_highlight_differnt_saliency_pixel(origin_data[i], targeted_cw_data[i][j], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
+            perturbation_cw_data[i][j], abs_small_perturbation_targeted_cw_data[i][j], abs_big_perturbation_targeted_cw_data[i][j], abs_small_saliency_targeted_cw_data[i][j], abs_big_saliency_targeted_cw_data[i][j] = abs_highlight_differnt_saliency_pixel(origin_data[i], targeted_cw_data[i][j], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
 
-    # for i in range(10):
-    #     for j in range(10):
+    m, n = 10, 11
+    fig, axs = plt.subplots(nrows=n, ncols=m, squeeze=True, figsize=(6*m, 6*n))
 
-    #         plt.imshow(saliency_origin_data[i], cmap="gray")
-    #         plt.axis('off')
-    #         plt.savefig("./img/saliency/data{}.png".format(i))
-    #         plt.close()
+    for i in range(10):
+        for j in range(10):
 
+            axs[0, j].imshow(targeted_cw_data[i][j], cmap="gray")
+            axs[0, j].set_title("targeted cw {}".format(j), fontsize=25, fontweight='bold')
+            axs[0, j].axis('off')
+            
+            axs[1, j].imshow(perturbation_cw_data[i][j], cmap="gray")
+            axs[1, j].set_title("perturbation {}".format(j), fontsize=25, fontweight='bold')
+            axs[1, j].axis('off')
 
-    #         plt.imshow(perturbation_cw_data[i][j], cmap="gray")
-    #         plt.axis('off')
-    #         plt.savefig("./img/pertur/data{}_{}.png".format(i, j))
-    #         plt.close()
+            axs[2, j].imshow(saliency_targeted_cw_data[i][j], cmap="gray")
+            axs[2, j].set_title("Saliency cw {}".format(j), fontsize=25, fontweight='bold')
+            axs[2, j].axis('off')
 
-    #         plt.imshow(small_saliency_targeted_cw_data[i][j], cmap="gray")
-    #         plt.axis('off')
-    #         plt.savefig("./img/small_sa/data{}_{}.png".format(i, j))
-    #         plt.close()
+            axs[3, j].imshow(small_saliency_targeted_cw_data[i][j], cmap="gray")
+            axs[3, j].set_title("(low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[3, j].axis('off')
 
-    #         plt.imshow(small_perturbation_targeted_cw_data[i][j], cmap="gray")
-    #         plt.axis('off')
-    #         plt.savefig("./img/small_pertur/data{}_{}.png".format(i, j))
-    #         plt.close()
+            axs[4, j].imshow(small_perturbation_targeted_cw_data[i][j], cmap="gray")
+            axs[4, j].set_title("(Overlab low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[4, j].axis('off')
 
-    #         plt.imshow(big_saliency_targeted_cw_data[i][j], cmap="gray")
-    #         plt.axis('off')
-    #         plt.savefig("./img/big_sa/data{}_{}.png".format(i, j))
-    #         plt.close()
+            axs[5, j].imshow(big_saliency_targeted_cw_data[i][j], cmap="gray")
+            axs[5, j].set_title("(High) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[5, j].axis('off')
 
-    #         plt.imshow(big_perturbation_targeted_cw_data[i][j], cmap="gray")
-    #         plt.axis('off')
-    #         plt.savefig("./img/big_pertur/data{}_{}.png".format(i, j))
-    #         plt.close()
-    kk = np.reshape(abs_big_perturbation_targeted_cw_data[0][3], (-1))
-    
-    matplotlib.rcParams['font.family'] = 'Malgun Gothic'
-    matplotlib.rcParams['axes.unicode_minus'] = False
+            axs[6, j].imshow(big_perturbation_targeted_cw_data[i][j], cmap="gray")
+            axs[6, j].set_title("(Overlab high) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[6, j].axis('off')
 
-    plt.hist(kk, color='c', bins = 10)
-    plt.grid()
-    plt.show()
-    plt.savefig("./test.png")    
+            axs[7, j].imshow(abs_small_saliency_targeted_cw_data[i][j], cmap="gray")
+            axs[7, j].set_title("(abs low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[7, j].axis('off')
+
+            axs[8, j].imshow(abs_small_perturbation_targeted_cw_data[i][j], cmap="gray")
+            axs[8, j].set_title("(Overlab abs low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[8, j].axis('off')
+
+            axs[9, j].imshow(abs_big_saliency_targeted_cw_data[i][j], cmap="gray")
+            axs[9, j].set_title("(abs High) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[9, j].axis('off')
+
+            axs[10, j].imshow(abs_big_perturbation_targeted_cw_data[i][j], cmap="gray")
+            axs[10, j].set_title("(Overlab abs high) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            axs[10, j].axis('off')
+
+        fig.savefig("./img/{}.png".format(i))
