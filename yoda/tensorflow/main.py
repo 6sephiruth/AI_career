@@ -44,14 +44,13 @@ os.environ['TF_DETERMINISTIC_OPS'] = '0'
 ATTACK_METHOD = params_loaded['attack_method']
 DATASET = params_loaded['dataset']
 
-datadir = ['model', 'model/' + DATASET, 'dataset', 'dataset/' + ATTACK_METHOD]
+datadir = ['model', 'model/' + DATASET, 'dataset', 'dataset/' + ATTACK_METHOD, 'img']
 mkdir(datadir)
 
 ATTACK_EPS = params_loaded['attack_eps']
 
 # dataset load
 if DATASET == 'mnist':
-    
     train, test = mnist_data()
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
@@ -99,7 +98,4 @@ else:
 
 model.trainable = False
 
-model.evaluate(x_test, y_test)
-
-
-# cw_saliency_analysis(model)
+cw_saliency_analysis(model)

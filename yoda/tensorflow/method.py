@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 
 # from cleverhans.tf2.attacks.fast_gradient_method import fast_gradient_method
 
@@ -16,17 +17,14 @@ import pickle
 import time
 
 def highlight_differnt_saliency_pixel(origin_img, targeted_cw_img, saliency_adv_img, saliency_origin_img):
-
-    # # 방법 1 - 그냥 빼기
-    # extraion_arr = saliency_adv_img - saliency_origin_img
-
-    # 방법 2 - absolute
-    extraion_arr = np.abs(saliency_adv_img - saliency_origin_img)
+    
+    # 방법 1 - 그냥 빼기
+    extraion_arr = saliency_adv_img - saliency_origin_img
 
 
-    extraion_arr_reshpae = np.reshape(extraion_arr, (784))
+    extraion_arr_reshape = np.reshape(extraion_arr, (784))
 
-    data_sort = np.sort(extraion_arr_reshpae)
+    data_sort = np.sort(extraion_arr_reshape)
 
     select_small = data_sort[:30]
     select_big = data_sort[-30:]
@@ -46,59 +44,158 @@ def highlight_differnt_saliency_pixel(origin_img, targeted_cw_img, saliency_adv_
 
     #########################################################
 
-    perturbation_cw_data = targeted_cw_img - origin_img
+    perturbation_cw_data = (targeted_cw_img - origin_img)
 
     perturbation_background = tf.expand_dims(perturbation_cw_data, 0)
     perturbation_background = tf.image.grayscale_to_rgb(perturbation_background)
     perturbation_background = np.reshape(perturbation_background, (28, 28, 3))
 
-    small_perturbation_pixel = change_pixel.copy()
-    big_perturbation_pixel = change_pixel.copy()
+
+    small_perturbation_pixel = perturbation_background.copy()
+    big_perturbation_pixel = perturbation_background.copy()
     
+    small_perturbation_pixel.setflags(write=1)
+    big_perturbation_pixel.setflags(write=1)
+
     small_perturbation_pixel = np.reshape(small_perturbation_pixel, (784, 3))
     big_perturbation_pixel = np.reshape(big_perturbation_pixel, (784, 3))
 
+    for i in range(30):
+        for j in range(784):
 
-    for i in range(784):
-        for j in range(30):
+            if extraion_arr_reshape[j] == select_small[i]:
+                
+                if small_change_pixel[j][0] == 0.5 and small_perturbation_pixel[j][0] == 0.5:        
+                    continue
 
-            if extraion_arr_reshpae[i] == select_small[j]:
+                small_change_pixel[j][0] = 0.5
+                small_change_pixel[j][1] = 0
+                small_change_pixel[j][2] = 0
 
-                select_small[j] = 99999  # 겹쳐지는거 방지할라고? 응급 처치 ㅋ
+                small_perturbation_pixel[j][0] = 0.5
+                small_perturbation_pixel[j][1] = 0
+                small_perturbation_pixel[j][2] = 0
 
-                small_change_pixel[i][0] = 0.5
-                small_change_pixel[i][1] = 0
-                small_change_pixel[i][2] = 0
-
-                small_perturbation_pixel[i][0] = 0.5
-                small_perturbation_pixel[i][1] = 0
-                small_perturbation_pixel[i][2] = 0
+                break
 
 
     small_change_pixel = np.reshape(small_change_pixel, (28, 28, 3))
     small_perturbation_pixel = np.reshape(small_perturbation_pixel, (28, 28, 3))
 
+    for i in range(30):
+        for j in range(784):
 
-    for i in range(784):
-        for j in range(30):
+            if extraion_arr_reshape[j] == select_big[i]:
 
-            if extraion_arr_reshpae[i] == select_big[j]:
+                if big_change_pixel[j][1] == 0.5 and big_perturbation_pixel[j][1] == 0.5:
+                    continue
 
-                select_big[j] = 99999  # 겹쳐지는거 방지할라고? 응급 처치 ㅋ
+                big_change_pixel[j][0] = 0
+                big_change_pixel[j][1] = 0.5
+                big_change_pixel[j][2] = 0
 
-                big_change_pixel[i][0] = 0
-                big_change_pixel[i][1] = 0.5
-                big_change_pixel[i][2] = 0
+                big_perturbation_pixel[j][0] = 0
+                big_perturbation_pixel[j][1] = 0.5
+                big_perturbation_pixel[j][2] = 0
 
-                big_perturbation_pixel[i][0] = 0
-                big_perturbation_pixel[i][1] = 0.5
-                big_perturbation_pixel[i][2] = 0
-
+                break
 
     big_change_pixel = np.reshape(big_change_pixel, (28, 28, 3))
     big_perturbation_pixel = np.reshape(big_perturbation_pixel, (28, 28, 3))
 
-    return small_perturbation_pixel, big_perturbation_pixel, small_change_pixel, big_change_pixel
+    return perturbation_background, small_perturbation_pixel, big_perturbation_pixel, small_change_pixel, big_change_pixel
+
+
+def abs_highlight_differnt_saliency_pixel(origin_img, targeted_cw_img, saliency_adv_img, saliency_origin_img):
+
+    # # 방법 1 - 그냥 빼기
+    # extraion_arr = saliency_adv_img - saliency_origin_img
+
+    extraion_arr = np.abs(saliency_adv_img - saliency_origin_img)
+
+
+    extraion_arr_reshape = np.reshape(extraion_arr, (784))
+
+    data_sort = np.sort(extraion_arr_reshape)
+
+    select_small = data_sort[:30]
+    select_big = data_sort[-30:]
+
+    change_pixel = tf.expand_dims(origin_img, 0)
+    change_pixel = tf.image.grayscale_to_rgb(change_pixel)
+    change_pixel = np.reshape(change_pixel, (28, 28, 3))
+
+    small_change_pixel = change_pixel.copy()
+    big_change_pixel = change_pixel.copy()
+
+    small_change_pixel.setflags(write=1)
+    big_change_pixel.setflags(write=1)
+
+    small_change_pixel = np.reshape(small_change_pixel, (784, 3))
+    big_change_pixel = np.reshape(big_change_pixel, (784, 3))
+
+    #########################################################
+
+    perturbation_cw_data = (targeted_cw_img - origin_img)
+
+    perturbation_background = tf.expand_dims(perturbation_cw_data, 0)
+    perturbation_background = tf.image.grayscale_to_rgb(perturbation_background)
+    perturbation_background = np.reshape(perturbation_background, (28, 28, 3))
+
+
+    small_perturbation_pixel = perturbation_background.copy()
+    big_perturbation_pixel = perturbation_background.copy()
+    
+    small_perturbation_pixel.setflags(write=1)
+    big_perturbation_pixel.setflags(write=1)
+
+    small_perturbation_pixel = np.reshape(small_perturbation_pixel, (784, 3))
+    big_perturbation_pixel = np.reshape(big_perturbation_pixel, (784, 3))
+
+    for i in range(30):
+        for j in range(784):
+
+            if extraion_arr_reshape[j] == select_small[i]:
+                
+                if small_change_pixel[j][0] == 0.5 and small_perturbation_pixel[j][0] == 0.5:        
+                    continue
+
+                small_change_pixel[j][0] = 0.5
+                small_change_pixel[j][1] = 0
+                small_change_pixel[j][2] = 0
+
+                small_perturbation_pixel[j][0] = 0.5
+                small_perturbation_pixel[j][1] = 0
+                small_perturbation_pixel[j][2] = 0
+
+                break
+
+
+    small_change_pixel = np.reshape(small_change_pixel, (28, 28, 3))
+    small_perturbation_pixel = np.reshape(small_perturbation_pixel, (28, 28, 3))
+
+    for i in range(30):
+        for j in range(784):
+
+            if extraion_arr_reshape[j] == select_big[i]:
+
+                if big_change_pixel[j][1] == 0.5 and big_perturbation_pixel[j][1] == 0.5:
+                    continue
+
+                big_change_pixel[j][0] = 0
+                big_change_pixel[j][1] = 0.5
+                big_change_pixel[j][2] = 0
+
+                big_perturbation_pixel[j][0] = 0
+                big_perturbation_pixel[j][1] = 0.5
+                big_perturbation_pixel[j][2] = 0
+
+                break
+
+    big_change_pixel = np.reshape(big_change_pixel, (28, 28, 3))
+    big_perturbation_pixel = np.reshape(big_perturbation_pixel, (28, 28, 3))
+
+    return perturbation_background, small_perturbation_pixel, big_perturbation_pixel, small_change_pixel, big_change_pixel
 
 def highlight_solo_pixel(model, img):
     
@@ -108,9 +205,9 @@ def highlight_solo_pixel(model, img):
     predict = np.argmax(predict)
 
     extraion_arr = saliency_img
-    extraion_arr_reshpae = np.reshape(extraion_arr, (784))
+    extraion_arr_reshape = np.reshape(extraion_arr, (784))
 
-    data_sort = np.sort(extraion_arr_reshpae)
+    data_sort = np.sort(extraion_arr_reshape)
 
     select_small = data_sort[:30]
     select_big = data_sort[-30:]
@@ -132,7 +229,7 @@ def highlight_solo_pixel(model, img):
     for i in range(784):
         for j in range(30):
 
-            if extraion_arr_reshpae[i] == select_small[j]:
+            if extraion_arr_reshape[i] == select_small[j]:
                 small_change_pixel[i][0] = 0.5
                 small_change_pixel[i][1] = 0
                 small_change_pixel[i][2] = 0
@@ -146,7 +243,7 @@ def highlight_solo_pixel(model, img):
     for i in range(784):
         for j in range(30):
 
-            if extraion_arr_reshpae[i] == select_big[j]:
+            if extraion_arr_reshape[i] == select_big[j]:
                 big_change_pixel[i][0] = 0
                 big_change_pixel[i][1] = 0.5
                 big_change_pixel[i][2] = 0
@@ -277,30 +374,66 @@ def cw_saliency_analysis(model):
 
     small_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 작은 픽셀 30개 고르기
     big_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 큰 픽셀 30개 고르기
+    abs_small_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 작은 픽셀 30개 고르기
+    abs_big_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 큰 픽셀 30개 고르기
 
     small_perturbation_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 작은 픽셀 Overlab
     big_perturbation_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 큰 픽셀 Overlab
+    abs_small_perturbation_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 작은 픽셀 Overlab
+    abs_big_perturbation_targeted_cw_data = np.zeros((10, 10, 28, 28, 3)) # 영향도가 가장 큰 픽셀 Overlab
 
+
+    perturbation_cw_data = np.zeros((10, 10, 28, 28, 3)) # perturbation 이미지
+    abs_perturbation_cw_data = np.zeros((10, 10, 28, 28, 3)) # perturbation 이미지
 
     for i in range(10):
         for j in range(10):
-
-            # perturbation_cw_data[i][j] = targeted_cw_data[i][j] - origin_data[i]
 
             saliency_origin_data[i] = eval('vanilla_saliency')(model, origin_data[i])
             saliency_targeted_cw_data[i][j] = eval('vanilla_saliency')(model, targeted_cw_data[i][j])
 
-            small_perturbation_targeted_cw_data[i][j], big_perturbation_targeted_cw_data[i][j], small_saliency_targeted_cw_data[i][j], big_saliency_targeted_cw_data[i][j] = highlight_differnt_saliency_pixel(origin_data[i], targeted_cw_data[i][j], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
+            perturbation_cw_data[i][j], small_perturbation_targeted_cw_data[i][j], big_perturbation_targeted_cw_data[i][j], small_saliency_targeted_cw_data[i][j], big_saliency_targeted_cw_data[i][j] = highlight_differnt_saliency_pixel(origin_data[i], targeted_cw_data[i][j], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
+            abs_perturbation_cw_data[i][j], abs_small_perturbation_targeted_cw_data[i][j], abs_big_perturbation_targeted_cw_data[i][j], abs_small_saliency_targeted_cw_data[i][j], abs_big_saliency_targeted_cw_data[i][j] = abs_highlight_differnt_saliency_pixel(origin_data[i], targeted_cw_data[i][j], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
 
-    red_saliency_targeted_cw_data = np.zeros((10, 10, 28, 28, 3))
+    # for i in range(10):
+    #     for j in range(10):
+
+    #         plt.imshow(saliency_origin_data[i], cmap="gray")
+    #         plt.axis('off')
+    #         plt.savefig("./img/saliency/data{}.png".format(i))
+    #         plt.close()
 
 
+    #         plt.imshow(perturbation_cw_data[i][j], cmap="gray")
+    #         plt.axis('off')
+    #         plt.savefig("./img/pertur/data{}_{}.png".format(i, j))
+    #         plt.close()
 
-    for i in range(10):
-        for j in range(10):
+    #         plt.imshow(small_saliency_targeted_cw_data[i][j], cmap="gray")
+    #         plt.axis('off')
+    #         plt.savefig("./img/small_sa/data{}_{}.png".format(i, j))
+    #         plt.close()
 
-            plt.imshow(small_saliency_targeted_cw_data[i][j])
+    #         plt.imshow(small_perturbation_targeted_cw_data[i][j], cmap="gray")
+    #         plt.axis('off')
+    #         plt.savefig("./img/small_pertur/data{}_{}.png".format(i, j))
+    #         plt.close()
 
-            plt.imshow(red_saliency_targeted_cw_data[i][j], cmap="Reds")
-            plt.axis('off')
-            plt.savefig("data{}_{}.png".format(i, j))
+    #         plt.imshow(big_saliency_targeted_cw_data[i][j], cmap="gray")
+    #         plt.axis('off')
+    #         plt.savefig("./img/big_sa/data{}_{}.png".format(i, j))
+    #         plt.close()
+
+    #         plt.imshow(big_perturbation_targeted_cw_data[i][j], cmap="gray")
+    #         plt.axis('off')
+    #         plt.savefig("./img/big_pertur/data{}_{}.png".format(i, j))
+    #         plt.close()
+    kk = np.reshape(abs_big_perturbation_targeted_cw_data[0][3], (-1))
+    
+    matplotlib.rcParams['font.family'] = 'Malgun Gothic'
+    matplotlib.rcParams['axes.unicode_minus'] = False
+
+    plt.hist(kk, color='c', bins = 10)
+    plt.grid()
+    plt.show()
+    plt.savefig("./test.png")    
