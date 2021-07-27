@@ -8,6 +8,8 @@ model_train: 'mnist_cnn'
 
 
 gpu_num: "3"
-attack_method: 'MIM'
+attack_method: 'FGSM'
 
-attack_eps: 0.2
+attack_eps: 0.01
+
+xai_method: 'normal_saliency'

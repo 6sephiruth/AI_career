@@ -43,6 +43,7 @@ os.environ['TF_DETERMINISTIC_OPS'] = '0'
 
 ATTACK_METHOD = params_loaded['attack_method']
 DATASET = params_loaded['dataset']
+XAI_METHOD = params_loaded['xai_method']
 
 datadir = ['model', 'model/' + DATASET, 'dataset', 'dataset/' + ATTACK_METHOD, 'img']
 mkdir(datadir)
@@ -97,6 +98,19 @@ else:
     model = tf.keras.models.load_model(checkpoint_path)
 
 model.trainable = False
+
+
+g_train = pickle.load(open(f'./dataset/{XAI_METHOD}/normal_train','rb'))
+
+ad_test = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
+adversarial_list = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_label','rb'))
+
+
+count = np.where(adversarial_list == 1)[0]
+print(count.shape)
+
+
+
 
 
 
