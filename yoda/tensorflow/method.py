@@ -363,7 +363,7 @@ def cw_saliency_analysis(model):
     origin_data = np.zeros((10, 28, 28, 1))
     targeted_cw_data = np.zeros((10, 10, 28, 28, 1))
 
-    origin_data[0], origin_data[1], origin_data[2], origin_data[3], origin_data[4], origin_data[5], origin_data[6], origin_data[7], origin_data[8], origin_data[9] = x_test[0], x_test[40], x_test[0], x_test[734], x_test[227], x_test[1146], x_test[0], x_test[175], x_test[495], x_test[88]
+    origin_data[0], origin_data[1], origin_data[2], origin_data[3], origin_data[4], origin_data[5], origin_data[6], origin_data[7], origin_data[8], origin_data[9] = x_test[0], x_test[40], x_test[0], x_test[734], x_test[227], x_test[1146], x_test[1593], x_test[175], x_test[495], x_test[882]
 
     if exists(f'./dataset/targeted_cw_data'):
         targeted_cw_data = pickle.load(open(f'./dataset/targeted_cw_data','rb'))
@@ -375,13 +375,16 @@ def cw_saliency_analysis(model):
 
                 targeted_cw_data[i][j] = targeted_cw(model, origin_data[i], j)
 
-                ###############################################################################
-                # target_result = model.predict(tf.expand_dims(targeted_cw_data[i][j], 0))
-                # target_result = np.argmax(target_result)
 
                 print("드디어 {}의 {} 끝났다.  ".format(i, j))
 
             pickle.dump(targeted_cw_data, open(f'./dataset/targeted_cw_data','wb'))
+
+    for i in trange(10):
+        targeted_cw_data[6][i] = targeted_cw(model, origin_data[6], i)
+        targeted_cw_data[9][i] = targeted_cw(model, origin_data[9], i)
+    pickle.dump(targeted_cw_data, open(f'./dataset/targeted_cw_data','wb'))
+
 
     perturbation_cw_data = np.zeros((10, 10, 28, 28, 1)) # perturbation 이미지
 
@@ -401,7 +404,6 @@ def cw_saliency_analysis(model):
 
 
     perturbation_cw_data = np.zeros((10, 10, 28, 28, 3)) # perturbation 이미지
-    abs_perturbation_cw_data = np.zeros((10, 10, 28, 28, 3)) # perturbation 이미지
     
     for i in range(10):
         targeted_cw_data[i][i] = origin_data[i]

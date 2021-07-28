@@ -6,10 +6,9 @@ dataset: 'mnist' # cifar10
 model_train: 'mnist_cnn'
 # model_train: 'cifar_vgg16' 
 
-
-gpu_num: "2, 3"
+gpu_num: "3"
 attack_method: 'FGSM'
 
-attack_eps: 0.01
+attack_eps: 0.2
 
 xai_method: 'normal_saliency'

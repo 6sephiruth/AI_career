@@ -18,5 +18,5 @@ X_train, X_test = X_train / 255.0, X_test / 255.0
 # targeted_cw = pickle.load(open(f'./dataset/targeted_cw_data','rb'))
 
 
-k = X_train[np.where(0 == Y_test)]
-print(k.shape)
+k = np.where(6 == Y_test)
+print(k[0][138])

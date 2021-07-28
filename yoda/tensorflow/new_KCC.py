@@ -106,13 +106,15 @@ g_train = pickle.load(open(f'./dataset/{XAI_METHOD}/normal_train','rb'))
 
 ad_test = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
 ad_label = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_label','rb'))
-# xai_ad_test = pickle.load(open(f'./dataset/{XAI_METHOD}_{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
+xai_ad_test = pickle.load(open(f'./dataset/{XAI_METHOD}_{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
 
 xai_origin = xai_ad_test[np.where(ad_label == 0)[0]]
 xai_ad = xai_ad_test[np.where(ad_label == 1)[0]]
 
+
 if len(xai_origin) > len(xai_ad):
     xai_origin = xai_origin[:len(xai_ad)]
+
 else:
     xai_ad = xai_ad[:len(xai_origin)]
 
@@ -140,41 +142,40 @@ autoencoder.load_weights(auto_checkpoint_path)
 autoencoder.trainable = False
 
 
+# g_train_reshape = tf.reshape(g_train, (len(g_train), 784))
+# train_recon = autoencoder.predict(g_train)
+# train_recon_reshape = tf.reshape(train_recon, (len(train_recon), 784))
 
-g_train_reshape = tf.reshape(g_train, (len(g_train), 784))
-train_recon = autoencoder.predict(g_train)
-train_recon_reshape = tf.reshape(train_recon, (len(train_recon), 784))
+# train_loss = tf.keras.losses.mae(train_recon_reshape, g_train_reshape)
 
-train_loss = tf.keras.losses.mae(train_recon_reshape, g_train_reshape)
+# # threshold -> train loss 값의 평균과 표준편차 값
 
-# threshold -> train loss 값의 평균과 표준편차 값
+# threshold = np.mean(train_loss) + np.std(train_loss)
+# #threshold = np.mean(train_loss)
 
-threshold = np.mean(train_loss) + np.std(train_loss)
-#threshold = np.mean(train_loss)
+# print("Threshold: ", threshold)
 
-print("Threshold: ", threshold)
+# # test
+# #x_saliency_train, x_adversarial_saliency_test, adversarial_list= load_saliency_dataset()
+# x_saliency_test_reshape = tf.reshape(xai_ad, (len(xai_ad), 784))
+# test_recon = autoencoder.predict(xai_ad)
 
-# test
-#x_saliency_train, x_adversarial_saliency_test, adversarial_list= load_saliency_dataset()
-x_saliency_test_reshape = tf.reshape(xai_ad, (len(xai_ad), 784))
-test_recon = autoencoder.predict(xai_ad)
+# test_reconstructions_reshape = tf.reshape(test_recon,(len(test_recon), 784))
 
-test_reconstructions_reshape = tf.reshape(test_recon,(len(test_recon), 784))
+# test_loss = tf.keras.losses.mae(test_reconstructions_reshape, x_saliency_test_reshape)
 
-test_loss = tf.keras.losses.mae(test_reconstructions_reshape, x_saliency_test_reshape)
+# # xai_ad_test_reshape = tf.reshape(xai_ad_test,(len(xai_ad_test),784))
+# # test_recon = autoencoder.predict(xai_ad_test)
+# # test_recon_reshape = tf.reshape(test_recon,(len(test_recon), 784))
 
-xai_ad_test_reshape = tf.reshape(xai_ad_test,(len(xai_ad_test),784))
-test_recon = autoencoder.predict(xai_ad_test)
-test_recon_reshape = tf.reshape(test_recon,(len(test_recon), 784))
+# # test_loss = tf.keras.losses.mae(test_reconstructions_reshape, xai_ad_test_reshape)
 
-test_loss = tf.keras.losses.mae(test_reconstructions_reshape, xai_ad_test_reshape)
+# preds = np.greater(test_loss,threshold)
 
-preds = np.greater(test_loss,threshold)
+# print('Accuracy = %f' % accuracy_score(ad_label, preds))
+# print('Precision = %f' % precision_score(ad_label, preds))
+# print('Recall = %f\n' % recall_score(ad_label, preds))
 
-print('Accuracy = %f' % accuracy_score(ad_label, preds))
-print('Precision = %f' % precision_score(ad_label, preds))
-print('Recall = %f\n' % recall_score(ad_label, preds))
-
-fpr, tpr, threshold = metrics.roc_curve(ad_label, test_loss)
-auc = metrics.auc(fpr, tpr)
-print('AUC = %f' % auc)
+# fpr, tpr, threshold = metrics.roc_curve(ad_label, test_loss)
+# auc = metrics.auc(fpr, tpr)
+# print('AUC = %f' % auc)

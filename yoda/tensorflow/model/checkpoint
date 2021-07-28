@@ -1,2 +1,2 @@
-model_checkpoint_path: "mnist"
-all_model_checkpoint_paths: "mnist"
+model_checkpoint_path: "autoencoder.ckpt"
+all_model_checkpoint_paths: "autoencoder.ckpt"
