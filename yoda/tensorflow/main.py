@@ -98,26 +98,12 @@ else:
 
 model.trainable = False
 
+cw_saliency_analysis(model)
 
+# ii = 3
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# cw_saliency_analysis(model)
-
-# ii = 9
-
-# for i in range(150):
+# for i in range(350):
+#     i += 150
 #     for j in range(10):
 
 #         pred = tf.expand_dims(targeted_cw(model, x_test[np.where(ii == y_test)[0][i]], j), 0)

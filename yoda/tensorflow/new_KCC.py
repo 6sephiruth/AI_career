@@ -5,6 +5,8 @@ import tensorflow as tf
 import numpy as np
 from keras.callbacks import ModelCheckpoint
 
+from sklearn.metrics import accuracy_score, precision_score, recall_score
+import sklearn.metrics as metrics
 
 import time
 
@@ -64,16 +66,16 @@ x_test, y_test = test
 
 model = eval(params_loaded['model_train'])()
 
-checkpoint_path = f'model/{DATASET}'
+cnn_checkpoint_path = f'model/{DATASET}'
 
 if exists(f'model/{DATASET}/saved_model.pb'):
 
-    model = tf.keras.models.load_model(checkpoint_path)
+    model = tf.keras.models.load_model(cnn_checkpoint_path)
 
 else:
 
     # MNIST 학습 checkpoint
-    checkpoint = ModelCheckpoint(checkpoint_path, 
+    cnn_checkpoint = ModelCheckpoint(cnn_checkpoint_path, 
                                 save_best_only=True, 
                                 save_weights_only=True, 
                                 monitor='val_loss',
@@ -84,7 +86,7 @@ else:
                     loss='sparse_categorical_crossentropy',
                     metrics=['accuracy'])
 
-        model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
+        model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[cnn_checkpoint],)
     
     if DATASET == 'cifar10':
 
@@ -92,10 +94,10 @@ else:
                     loss='sparse_categorical_crossentropy',
                     metrics=['accuracy'])
 
-        model.fit(x_train, y_train, epochs=40, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
+        model.fit(x_train, y_train, epochs=40, shuffle=True, validation_data=(x_test, y_test), callbacks=[cnn_checkpoint],)
 
-    model.save(checkpoint_path)
-    model = tf.keras.models.load_model(checkpoint_path)
+    model.save(cnn_checkpoint_path)
+    model = tf.keras.models.load_model(cnn_checkpoint_path)
 
 model.trainable = False
 
@@ -103,43 +105,76 @@ model.trainable = False
 g_train = pickle.load(open(f'./dataset/{XAI_METHOD}/normal_train','rb'))
 
 ad_test = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
-adversarial_list = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_label','rb'))
+ad_label = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_label','rb'))
+# xai_ad_test = pickle.load(open(f'./dataset/{XAI_METHOD}_{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
+
+xai_origin = xai_ad_test[np.where(ad_label == 0)[0]]
+xai_ad = xai_ad_test[np.where(ad_label == 1)[0]]
+
+if len(xai_origin) > len(xai_ad):
+    xai_origin = xai_origin[:len(xai_ad)]
+else:
+    xai_ad = xai_ad[:len(xai_origin)]
 
 
-count = np.where(adversarial_list == 1)[0]
-print(count.shape)
+autoencoder = eval('AnomalyDetector')()
+
+autoencoder.compile(optimizer='adam', loss='mae')
+
+auto_checkpoint_path = f'model/autoencoder.ckpt'
+
+auto_checkpoint = ModelCheckpoint(auto_checkpoint_path, 
+                                  save_best_only=True, 
+                                  save_weights_only=True, 
+                                  monitor='val_loss',
+                                  verbose=1)
+
+history = autoencoder.fit(g_train, g_train, 
+          epochs=5,
+          batch_size=32,
+          validation_data=(xai_origin, xai_origin),
+          shuffle=True,
+          callbacks=[auto_checkpoint])
+
+autoencoder.load_weights(auto_checkpoint_path)
+autoencoder.trainable = False
 
 
 
+g_train_reshape = tf.reshape(g_train, (len(g_train), 784))
+train_recon = autoencoder.predict(g_train)
+train_recon_reshape = tf.reshape(train_recon, (len(train_recon), 784))
 
+train_loss = tf.keras.losses.mae(train_recon_reshape, g_train_reshape)
 
+# threshold -> train loss 값의 평균과 표준편차 값
 
+threshold = np.mean(train_loss) + np.std(train_loss)
+#threshold = np.mean(train_loss)
 
+print("Threshold: ", threshold)
 
+# test
+#x_saliency_train, x_adversarial_saliency_test, adversarial_list= load_saliency_dataset()
+x_saliency_test_reshape = tf.reshape(xai_ad, (len(xai_ad), 784))
+test_recon = autoencoder.predict(xai_ad)
 
+test_reconstructions_reshape = tf.reshape(test_recon,(len(test_recon), 784))
 
+test_loss = tf.keras.losses.mae(test_reconstructions_reshape, x_saliency_test_reshape)
 
+xai_ad_test_reshape = tf.reshape(xai_ad_test,(len(xai_ad_test),784))
+test_recon = autoencoder.predict(xai_ad_test)
+test_recon_reshape = tf.reshape(test_recon,(len(test_recon), 784))
 
+test_loss = tf.keras.losses.mae(test_reconstructions_reshape, xai_ad_test_reshape)
 
+preds = np.greater(test_loss,threshold)
 
+print('Accuracy = %f' % accuracy_score(ad_label, preds))
+print('Precision = %f' % precision_score(ad_label, preds))
+print('Recall = %f\n' % recall_score(ad_label, preds))
 
-
-
-
-
-# cw_saliency_analysis(model)
-
-# ii = 9
-
-# for i in range(150):
-#     for j in range(10):
-
-#         pred = tf.expand_dims(targeted_cw(model, x_test[np.where(ii == y_test)[0][i]], j), 0)
-#         pred = model.predict(pred)
-#         pred = np.argmax(pred)
-
-#         print("{} 의   {}번째  {}의 결과는 {} ".format(ii ,i, j, pred))
-
-#         if pred != j:
-#             break
-#     print("---------------------------------------------")
+fpr, tpr, threshold = metrics.roc_curve(ad_label, test_loss)
+auc = metrics.auc(fpr, tpr)
+print('AUC = %f' % auc)
