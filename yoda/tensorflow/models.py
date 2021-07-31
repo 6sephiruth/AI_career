@@ -124,3 +124,21 @@ class AnomalyDetector(Model):
         decoded = self.decoder(encoded)
         return decoded
 
+# simple autoencoder
+class ae2(Model):
+    def __init__(self, latent_dim):
+        super(ae2, self).__init__()
+        self.latent_dim = latent_dim
+        self.encoder = Sequential([
+            Flatten(),
+            Dense(latent_dim, activation='relu'),
+        ])
+        self.decoder = Sequential([
+            Dense(784, activation='sigmoid'),
+            Reshape((28, 28, 1))
+        ])
+
+    def call(self, x):
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded

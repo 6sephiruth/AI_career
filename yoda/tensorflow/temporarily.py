@@ -122,7 +122,7 @@
 ### Saliency 만들기
 
 # if exists(f'./dataset/normal_saliency/normal_train'):
-#     g_train = pickle.load(open(f'./dataset/normal_saliency/normal_train','rb'))
+#     g_train = pickle.load(open(f'./dataset/normal_saliency/train','rb'))
 
 # else:
 #     g_train= []
@@ -132,7 +132,7 @@
 
 #     g_train = np.array(g_train)
 
-#     pickle.dump(g_train, open(f'./dataset/normal_saliency/normal_train','wb'))
+#     pickle.dump(g_train, open(f'./dataset/normal_saliency/train','wb'))
 
 
 

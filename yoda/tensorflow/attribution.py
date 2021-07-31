@@ -4,6 +4,11 @@ import saliency.core as saliency
 
 
 def model_fn(images, call_model_args, expected_keys=None):
+    """
+    함수_vanilla_saliency 데이터 처리 함수
+    
+    """
+
     target_class_idx = call_model_args['class']
     model = call_model_args['model']
     images = tf.convert_to_tensor(images)
@@ -22,6 +27,15 @@ def model_fn(images, call_model_args, expected_keys=None):
                     saliency.base.CONVOLUTION_OUTPUT_GRADIENTS: gradients}
 
 def vanilla_saliency(model, img):
+    """
+    Saliency map을 이용하여 기여도 맵 추출 함수
+
+    :model: 학습된 인공지능 모델
+            인공지능 모델이 바뀔 때, 기여도 맵 또한 변경됨.
+    :img:   기여도 맵을 추출하고 하는 이미지 데이터
+    :return: 추출된 기여도 맵
+
+    """
     pred = model(np.array([img]))
     pred_cls = np.argmax(pred[0])
     args = {'model': model, 'class': pred_cls}

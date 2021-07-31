@@ -98,20 +98,20 @@ else:
 
 model.trainable = False
 
-cw_saliency_analysis(model)
+# cw_saliency_analysis(model)
 
-# ii = 3
+ii = 0
 
-# for i in range(350):
-#     i += 150
-#     for j in range(10):
+for i in range(350):
+    i += 170
+    for j in range(10):
 
-#         pred = tf.expand_dims(targeted_cw(model, x_test[np.where(ii == y_test)[0][i]], j), 0)
-#         pred = model.predict(pred)
-#         pred = np.argmax(pred)
+        pred = tf.expand_dims(targeted_cw(model, x_test[np.where(ii == y_test)[0][i]], j), 0)
+        pred = model.predict(pred)
+        pred = np.argmax(pred)
 
-#         print("{} 의   {}번째  {}의 결과는 {} ".format(ii ,i, j, pred))
+        print("{} 의   {}번째  {}의 결과는 {} ".format(ii ,i, j, pred))
 
-#         if pred != j:
-#             break
-#     print("---------------------------------------------")
+        if pred != j:
+            break
+    print("---------------------------------------------")
