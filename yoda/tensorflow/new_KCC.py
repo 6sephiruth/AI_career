@@ -42,7 +42,6 @@ for d in physical_devices:
 
 os.environ['TF_DETERMINISTIC_OPS'] = '0'
 
-
 ATTACK_METHOD = params_loaded['attack_method']
 DATASET = params_loaded['dataset']
 XAI_METHOD = params_loaded['xai_method']

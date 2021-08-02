@@ -2,10 +2,10 @@ import numpy as np
 import tensorflow as tf
 import saliency.core as saliency
 
-
 def model_fn(images, call_model_args, expected_keys=None):
     """
     함수_vanilla_saliency 데이터 처리 함수
+    인공지능 모델의 output과 input 사이의 gradient 연산 처리
     
     """
 
