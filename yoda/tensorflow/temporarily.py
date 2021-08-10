@@ -119,7 +119,7 @@ else:
 
 
 
-### Saliency 만들기
+# ## Saliency 만들기
 
 # if exists(f'./dataset/normal_saliency/normal_train'):
 #     g_train = pickle.load(open(f'./dataset/normal_saliency/train','rb'))

@@ -10,6 +10,6 @@ model_train: 'mnist_cnn'
 # model_train: 'cifar_vgg16' 
 
 
-attack_eps: 0.2
+attack_eps: 0.5
 
 xai_method: 'normal_saliency'

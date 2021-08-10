@@ -9,6 +9,8 @@ from cleverhans.tf2.attacks.carlini_wagner_l2 import carlini_wagner_l2
 from cleverhans.tf2.attacks.projected_gradient_descent import projected_gradient_descent
 from cleverhans.tf2.attacks.momentum_iterative_method import momentum_iterative_method
 
+from cleverhans.tf2.attacks.fast_gradient_method import fast_gradient_method
+
 def untargeted_fgsm(model, img, eps):
     """
     untargeted FGSM의 적대적 예제 생성 함수

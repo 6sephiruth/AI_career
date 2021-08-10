@@ -45,11 +45,10 @@ os.environ['TF_DETERMINISTIC_OPS'] = '0'
 ATTACK_METHOD = params_loaded['attack_method']
 DATASET = params_loaded['dataset']
 XAI_METHOD = params_loaded['xai_method']
+ATTACK_EPS = params_loaded['attack_eps']
 
 datadir = ['model', 'model/' + DATASET, 'dataset', 'dataset/' + ATTACK_METHOD, 'img']
 mkdir(datadir)
-
-ATTACK_EPS = params_loaded['attack_eps']
 
 # dataset load
 if DATASET == 'mnist':
@@ -87,7 +86,7 @@ else:
 
         model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[cnn_checkpoint],)
     
-    if DATASET == 'cifar10':
+    elif DATASET == 'cifar10':
 
         model.compile(optimizer='adam',
                     loss='sparse_categorical_crossentropy',
@@ -100,11 +99,16 @@ else:
 
 model.trainable = False
 
-g_train = pickle.load(open(f'./dataset/{XAI_METHOD}/normal_train','rb'))
+g_train = pickle.load(open(f'./dataset/{XAI_METHOD}/normal_train_2','rb'))
 
 ad_test = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
 ad_label = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_label','rb'))
 xai_ad_test = pickle.load(open(f'./dataset/{XAI_METHOD}_{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
+
+ad_test = pickle.load(open(f'./dataset/FGSM/0.5_test','rb'))
+ad_label = pickle.load(open(f'./dataset/FGSM/0.5_label','rb'))
+xai_ad_test = pickle.load(open(f'./dataset/normal_saliency_FGSM/0.5_test','rb'))
+
 
 ad_label = ad_label.astype(bool)
 
@@ -183,20 +187,3 @@ fpr, tpr, threshold = metrics.roc_curve(ad_label, test_loss)
 auc = metrics.auc(fpr, tpr)
 print('AUC = %f' % auc)
 
-fig, axs = plt.subplots(nrows=2, ncols=2, squeeze=True, figsize=(6*2, 6*1))
-
-for i in range(10):
-
-    axs[0, 0].imshow(g_train[i])
-    axs[0, 0].axis('off')
-
-    axs[0, 1].imshow(train_recon[i])
-    axs[0, 1].axis('off')
-
-    axs[1, 0].imshow(ad_test[i])
-    axs[1, 0].axis('off')
-
-    axs[1, 1].imshow(test_recon[i])
-    axs[1, 1].axis('off')
-
-    fig.savefig("./img/{}.png".format(i))

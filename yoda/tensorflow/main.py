@@ -5,7 +5,6 @@ import tensorflow as tf
 import numpy as np
 from keras.callbacks import ModelCheckpoint
 
-
 import time
 
 from models import *
@@ -98,20 +97,21 @@ else:
 
 model.trainable = False
 
-# cw_saliency_analysis(model)
+attack_test = pickle.load(open(f'./dataset/FGSM/0.5_test','rb'))
 
-ii = 0
+## Saliency 만들기
 
-for i in range(350):
-    i += 170
-    for j in range(10):
+if exists(f'./dataset/normal_saliency_FGSM/0.5_test'):
+    g_train = pickle.load(open(f'./dataset/normal_saliency_FGSM/0.5_test','rb'))
 
-        pred = tf.expand_dims(targeted_cw(model, x_test[np.where(ii == y_test)[0][i]], j), 0)
-        pred = model.predict(pred)
-        pred = np.argmax(pred)
+else:
+    g_train= []
 
-        print("{} 의   {}번째  {}의 결과는 {} ".format(ii ,i, j, pred))
+    for i in trange(len(attack_test)):
+        g_train.append(eval('vanilla_saliency')(model, attack_test[i])) # (28, 28, 1)
 
-        if pred != j:
-            break
-    print("---------------------------------------------")
+    g_train = np.array(g_train)
+
+    pickle.dump(g_train, open(f'./dataset/normal_saliency_FGSM/0.5_test','wb'))
+
+
