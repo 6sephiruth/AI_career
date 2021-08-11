@@ -97,21 +97,41 @@ else:
 
 model.trainable = False
 
-attack_test = pickle.load(open(f'./dataset/FGSM/0.5_test','rb'))
+
+
+attack_test, attack_label = [], []
+
+for i in trange(len(x_test)):
+    
+    adv_data = eval('untargeted_fgsm')(model, x_test[i], ATTACK_EPS) # (28, 28, 1)
+
+    pred_adv_data = model.predict(tf.expand_dims(adv_data, 0))
+    pred_adv_data = np.argmax(pred_adv_data)
+
+    if y_test[i] != pred_adv_data:
+        attack_label.append(1)
+        attack_test.append(adv_data)
+
+    else:
+        attack_label.append(0)
+        attack_test.append(x_test[i])
+
+
+attack_test, attack_label = np.array(attack_test), np.array(attack_label)
+
+pickle.dump(attack_test, open(f'./dataset/FGSM/{ATTACK_EPS}_test','wb'))
+pickle.dump(attack_label, open(f'./dataset/FGSM/{ATTACK_EPS}_label','wb'))
+
+
+attack_test = pickle.load(open(f'./dataset/FGSM/{ATTACK_EPS}_test','rb'))
 
 ## Saliency 만들기
 
-if exists(f'./dataset/normal_saliency_FGSM/0.5_test'):
-    g_train = pickle.load(open(f'./dataset/normal_saliency_FGSM/0.5_test','rb'))
+g_train= []
 
-else:
-    g_train= []
+for i in trange(len(attack_test)):
+    g_train.append(eval('vanilla_saliency')(model, attack_test[i])) # (28, 28, 1)
 
-    for i in trange(len(attack_test)):
-        g_train.append(eval('vanilla_saliency')(model, attack_test[i])) # (28, 28, 1)
+g_train = np.array(g_train)
 
-    g_train = np.array(g_train)
-
-    pickle.dump(g_train, open(f'./dataset/normal_saliency_FGSM/0.5_test','wb'))
-
-
+pickle.dump(g_train, open(f'./dataset/normal_saliency_FGSM/{ATTACK_EPS}_test','wb'))

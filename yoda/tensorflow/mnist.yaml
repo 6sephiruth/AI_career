@@ -2,7 +2,7 @@ batch_size: 64
 
 dataset: 'mnist' # cifar10
 attack_method: 'FGSM'
-gpu_num: "2, 3"
+gpu_num: "3"
 
 
 # model.py 참조

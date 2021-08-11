@@ -20,9 +20,9 @@ from tqdm import trange
 
 import pickle
 
-seed = 0
-tf.random.set_seed(seed)
-np.random.seed(seed)
+# seed = 0
+# tf.random.set_seed(seed)
+# np.random.seed(seed)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--params', dest='params')
@@ -53,11 +53,11 @@ mkdir(datadir)
 # dataset load
 if DATASET == 'mnist':
     train, test = mnist_data()
-    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+    # loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
 elif DATASET == 'cifar10':
     train, test = cifar10_data()
-    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+    # loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     
 x_train, y_train = train
 x_test, y_test = test
@@ -99,15 +99,16 @@ else:
 
 model.trainable = False
 
-g_train = pickle.load(open(f'./dataset/{XAI_METHOD}/normal_train_2','rb'))
+g_train = pickle.load(open(f'./dataset/{XAI_METHOD}/train','rb'))
 
-ad_test = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
-ad_label = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_label','rb'))
-xai_ad_test = pickle.load(open(f'./dataset/{XAI_METHOD}_{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
+# ad_test = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
+# ad_label = pickle.load(open(f'./dataset/{ATTACK_METHOD}/{ATTACK_EPS}_label','rb'))
+# xai_ad_test = pickle.load(open(f'./dataset/{XAI_METHOD}_{ATTACK_METHOD}/{ATTACK_EPS}_test','rb'))
 
-ad_test = pickle.load(open(f'./dataset/FGSM/0.5_test','rb'))
-ad_label = pickle.load(open(f'./dataset/FGSM/0.5_label','rb'))
-xai_ad_test = pickle.load(open(f'./dataset/normal_saliency_FGSM/0.5_test','rb'))
+
+ad_test = pickle.load(open(f'./dataset/FGSM/{ATTACK_EPS}_test','rb'))
+ad_label = pickle.load(open(f'./dataset/FGSM/{ATTACK_EPS}_label','rb'))
+xai_ad_test = pickle.load(open(f'./dataset/normal_saliency_FGSM/{ATTACK_EPS}_test','rb'))
 
 
 ad_label = ad_label.astype(bool)
@@ -125,6 +126,8 @@ ad_test = np.concatenate([xai_origin, xai_ad], 0)
 
 ad_label = np.ones(len(ad_test))
 ad_label[:len(xai_origin)] = 0
+
+# ad_label = ad_label.astype(bool)
 
 auto_checkpoint_path = f'model/autoencoder'
 
@@ -146,7 +149,7 @@ else:
                                     verbose=1)
 
     history = autoencoder.fit(g_train, g_train, 
-            epochs=10,
+            epochs=5,
             batch_size=32,
             validation_data=(xai_origin, xai_origin),
             shuffle=True,
@@ -176,7 +179,7 @@ test_reconstructions_reshape = tf.reshape(test_recon,(len(test_recon), 784))
 
 test_loss = tf.keras.losses.mae(test_reconstructions_reshape, x_saliency_test_reshape)
 
-preds = np.greater(test_loss,threshold)
+preds = np.greater(test_loss, threshold)
 
 
 print('Accuracy = %f' % accuracy_score(ad_label, preds))
@@ -186,4 +189,3 @@ print('Recall = %f\n' % recall_score(ad_label, preds))
 fpr, tpr, threshold = metrics.roc_curve(ad_label, test_loss)
 auc = metrics.auc(fpr, tpr)
 print('AUC = %f' % auc)
-

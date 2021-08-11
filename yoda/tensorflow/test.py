@@ -12,5 +12,10 @@ mnist = tf.keras.datasets.mnist
 
 train, test = mnist.load_data()
 
-pickle.dump(train, open(f'../mnist_train','wb'))
-pickle.dump(test, open(f'../mnist_test','wb'))
+a = np.array([1., 0., 1., 1.,])
+a = a.astype(bool)
+
+b = np.array([32, 43, 22, 1])
+
+print(b[a])
+print(b[~a])
