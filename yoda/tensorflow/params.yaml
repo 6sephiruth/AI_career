@@ -1,8 +1,8 @@
 batch_size: 64
 
 dataset: 'mnist' # cifar10
-attack_method: 'FGSM'
-gpu_num: "3"
+attack_method: 'PGD'
+gpu_num: "2"
 
 
 # model.py 참조
@@ -10,6 +10,6 @@ model_train: 'mnist_cnn'
 # model_train: 'cifar_vgg16' 
 
 
-attack_eps: 0.5
+attack_eps: 0.2
 
 xai_method: 'normal_saliency'

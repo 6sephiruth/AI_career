@@ -358,7 +358,6 @@ def cw_saliency_analysis(model):
 
     x_test = x_test / 255.0
 
-
     # targeted CW dataset 만들기
     origin_data = np.zeros((10, 28, 28, 1))
     targeted_cw_data = np.zeros((10, 10, 28, 28, 1))
@@ -374,7 +373,6 @@ def cw_saliency_analysis(model):
             for j in range(10):
 
                 targeted_cw_data[i][j] = targeted_cw(model, origin_data[i], j)
-
 
                 print("드디어 {}의 {} 끝났다.  ".format(i, j))
 

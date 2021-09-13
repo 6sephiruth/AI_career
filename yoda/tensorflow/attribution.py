@@ -43,7 +43,7 @@ def vanilla_saliency(model, img):
     grad = saliency.GradientSaliency()
     attr = grad.GetMask(img, model_fn, args)
     attr = saliency.VisualizeImageGrayscale(attr)
-
+    
     return tf.reshape(attr, (*attr.shape, 1))
 
 def ig(model, img):

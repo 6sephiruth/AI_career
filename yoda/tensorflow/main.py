@@ -1,5 +1,6 @@
 import argparse
 import os
+from matplotlib import cm
 import yaml
 import tensorflow as tf
 import numpy as np
@@ -17,10 +18,6 @@ from tqdm import trange
 
 import pickle
 
-seed = 0
-tf.random.set_seed(seed)
-np.random.seed(seed)
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--params', dest='params')
 args = parser.parse_args()
@@ -30,6 +27,10 @@ with open(f'./{args.params}', 'r') as f:
 
 # designate gpu
 os.environ['CUDA_VISIBLE_DEVICES'] = params_loaded['gpu_num']
+
+seed = 0
+tf.random.set_seed(seed)
+np.random.seed(seed)
 
 # enable memory growth
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -97,41 +98,4 @@ else:
 
 model.trainable = False
 
-
-
-attack_test, attack_label = [], []
-
-for i in trange(len(x_test)):
-    
-    adv_data = eval('untargeted_fgsm')(model, x_test[i], ATTACK_EPS) # (28, 28, 1)
-
-    pred_adv_data = model.predict(tf.expand_dims(adv_data, 0))
-    pred_adv_data = np.argmax(pred_adv_data)
-
-    if y_test[i] != pred_adv_data:
-        attack_label.append(1)
-        attack_test.append(adv_data)
-
-    else:
-        attack_label.append(0)
-        attack_test.append(x_test[i])
-
-
-attack_test, attack_label = np.array(attack_test), np.array(attack_label)
-
-pickle.dump(attack_test, open(f'./dataset/FGSM/{ATTACK_EPS}_test','wb'))
-pickle.dump(attack_label, open(f'./dataset/FGSM/{ATTACK_EPS}_label','wb'))
-
-
-attack_test = pickle.load(open(f'./dataset/FGSM/{ATTACK_EPS}_test','rb'))
-
-## Saliency 만들기
-
-g_train= []
-
-for i in trange(len(attack_test)):
-    g_train.append(eval('vanilla_saliency')(model, attack_test[i])) # (28, 28, 1)
-
-g_train = np.array(g_train)
-
-pickle.dump(g_train, open(f'./dataset/normal_saliency_FGSM/{ATTACK_EPS}_test','wb'))
+cw_saliency_analysis(model)
