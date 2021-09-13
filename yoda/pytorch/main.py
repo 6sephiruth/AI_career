@@ -1,32 +1,25 @@
 import argparse
 import os
+from numpy.lib.function_base import kaiser
 import yaml
 import time
 from easydict import EasyDict
+import pickle
 
 import torch
-import torchvision.datasets as dataset
-import torchvision.transforms as transforms
+# import torchvision.datasets as dataset
+
+from torchvision import datasets, transforms
+import torch.optim as optim
+from torch.optim.lr_scheduler import StepLR
 
 import numpy as np
 
-from helper import *
 from utils import *
 from models import *
-
-import saliency.core as saliency
-
-from cleverhans.torch.attacks.fast_gradient_method import fast_gradient_method
-
-device = 'cuda:2' if torch.cuda.is_available() else 'cpu'
-
-seed = 0
-torch.manual_seed(seed)
-np.random.seed(seed)
-
-# GPU를 사용 가능할 경우 랜덤 시드를 고정
-if device == 'cuda':
-    torch.cuda.manual_seed_all(seed)
+from ad_attack import *
+from attribution import *
+from method import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--params', dest='params')
@@ -35,101 +28,97 @@ args = parser.parse_args()
 with open(f'./{args.params}', 'r') as f:
     params_loaded = yaml.safe_load(f)
 
-# designate gpu
-#os.environ['CUDA_VISIBLE_DEVICES'] = '2' # params_loaded['gpu_num']
 
-directory = ['dataset', 'model']
+seed = 0
+torch.manual_seed(seed)
+np.random.seed(seed)
+
+torch.cuda.set_device(torch.device('cuda:2'))
+
+device = 'cuda:2' if torch.cuda.is_available() else 'cpu'
+
+# GPU를 사용 가능할 경우 랜덤 시드를 고정
+if device == 'cuda':
+    torch.cuda.manual_seed_all(seed)
+
+
+directory = ['dataset', 'model', 'img']
 
 mkdir(directory)
 
+ATTACK_TYPE = params_loaded['attack_type']
+ATTACK_EPS = params_loaded['attack_eps']
+XAI_TYPE = params_loaded['xai_type']
 
-train, test = dataset.train, dataset.test
+# train, test = dataset.train, dataset.test
 
-print(train)
+def train(args, model, device, train_loader, optimizer, epoch):
 
-# train_data_loader = torch.utils.data.DataLoader(dataset=train,
-#                                                batch_size=params_loaded['batch_size'],
-#                                                shuffle=True,
-#                                                drop_last=True)
+    model.train()
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+        output = model(data)
+        loss = F.nll_loss(output, target)
+        loss.backward()
+        optimizer.step()
+        if batch_idx % 10 == 0:
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                epoch, batch_idx * len(data), len(train_loader.dataset),
+                100. * batch_idx / len(train_loader), loss.item()))
 
-# test_data_loader = torch.utils.data.DataLoader(dataset=test,
-#                                                batch_size=params_loaded['batch_size'],
-#                                                shuffle=False,
-#                                                drop_last=True)
+
+def test(model, device, test_loader):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_loss /= len(test_loader.dataset)
+
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)))
 
 
-# model_name = params_loaded['model_name']
+train_kwargs = {'batch_size': params_loaded['batch_size']}
+test_kwargs = {'batch_size': params_loaded['test_batch_size']}
 
-# model = eval(model_name)().to(device)
+transform=transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,))
+        ])
 
-# criterion = torch.nn.CrossEntropyLoss().to(device)    # 비용 함수에 소프트맥스 함수 포함되어져 있음.
-# optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+dataset1 = datasets.MNIST('../dataset', train=True, download=True,
+                    transform=transform)
+dataset2 = datasets.MNIST('../dataset', train=False,
+                    transform=transform)
 
-# total_batch = len(train_data_loader)
-# print('총 배치의 수 : {}'.format(total_batch))
+train_loader = torch.utils.data.DataLoader(dataset1,**train_kwargs)
+test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
-# if exists(f'model/{dataset_name}.pt'):
+model = Net().to(device)
+optimizer = optim.Adadelta(model.parameters(), lr=params_loaded['learning_rate'])
+
+scheduler = StepLR(optimizer, step_size=1, gamma= 0.07)
+
+if exists(f'./model/mnist_cnn.pt'):
+    model = torch.load(f'./model/mnist_cnn.pt')
+    model.eval()
+
+else:
     
-#     model.load_state_dict(torch.load(f'model/{dataset_name}.pt'))
-#     model.eval()
-# else:
-#     for epoch in range(params_loaded['epoch_count']):
-#         avg_cost = 0
+    for epoch in range(1, params_loaded['epoch'] + 1):
+        train(args, model, device, train_loader, optimizer, epoch)
+        test(model, device, test_loader)
+        scheduler.step()
 
-#         for X, Y in train_data_loader: # 미니 배치 단위로 꺼내온다. X는 미니 배치, Y는 레이블.
-#             # image is already size of (28x28), no reshape
-#             # label is not one-hot encoded
-#             X = X.to(device)
-#             Y = Y.to(device)
+    torch.save(model, "./model/mnist_cnn.pt")
 
-#             optimizer.zero_grad()
-#             hypothesis = model(X)
-#             cost = criterion(hypothesis, Y)
-#             cost.backward()
-#             optimizer.step()
-
-#             avg_cost += cost / total_batch
-
-#         print('[Epoch: {:>4}] cost = {:>.9}'.format(epoch + 1, avg_cost))
-
-#         torch.save(model.state_dict(), f'model/{dataset_name}.pt')
-
-# # # 학습을 진행하지 않을 것이므로 torch.no_grad()
-# # with torch.no_grad():
-# #     X_test = test.test_data.view(len(test), 1, 28, 28).float().to(device)
-# #     Y_test = test.test_labels.to(device)
-
-# #     prediction = model(X_test)
-# #     correct_prediction = torch.argmax(prediction, 1) == Y_test
-# #     accuracy = correct_prediction.float().mean()
-# #     print('Accuracy:', accuracy.item())
-
-# report = EasyDict(nb_test=0, correct=0, correct_fgm=0, correct_pgd=0)
-
-
-
-# for x, y in test_data_loader:
-#     x, y = x.to(device), y.to(device)
-    
-#     x_fgm = fast_gradient_method(model, x, 0.5, np.inf)
-
-#     _, y_pred = model(x).max(1)
-
-#     _, y_pred_fgm = model(x_fgm).max(1)
-
-#     # report.nb_test += y.size(0)
-#     # report.correct += y_pred.eq(y).sum().item()
-#     # report.correct_fgm += y_pred_fgm.eq(y).sum().item()
-
-#     # print(
-#     #     "test acc on clean examples (%): {:.3f}".format(
-#     #         report.correct / report.nb_test * 100.0
-#     #     )
-#     # )
-#     # print(
-#     #     "test acc on FGM adversarial examples (%): {:.3f}".format(
-#     #         report.correct_fgm / report.nb_test * 100.0
-#     #     )
-#     # )
-#     # time.sleep(3)
-
+cw_saliency_analysis(model)
