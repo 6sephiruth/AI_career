@@ -124,7 +124,7 @@ def highlight_differnt_saliency_pixel(origin_img, targeted_cw_img, saliency_adv_
     big_change_pixel = np.reshape(big_change_pixel, (28, 28, 3))
     big_perturbation_pixel = np.reshape(big_perturbation_pixel, (28, 28, 3))
 
-    return perturbation_background, small_perturbation_pixel, big_perturbation_pixel, small_change_pixel, big_change_pixel[0]
+    return perturbation_background, small_perturbation_pixel, big_perturbation_pixel, small_change_pixel, big_change_pixel
 
 
 def abs_highlight_differnt_saliency_pixel(origin_img, targeted_cw_img, saliency_adv_img, saliency_origin_img):
