@@ -1,0 +1,5 @@
+# 이미지형: mnist, cifar10, cifar100, fashion_mnist, cats_vs_dogs, lfw, emnist, kmnist, smallnorb
+# 테이블형: boston_housing, reuters_newswire, iris
+# 텍스트형: imdb
+
+dataset: 'boston_housing'
