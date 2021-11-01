@@ -379,7 +379,6 @@ def cw_saliency_analysis(model):
             pickle.dump(targeted_cw_data, open(f'./dataset/targeted_cw_data','wb'))
 
 
-
     perturbation_cw_data = np.zeros((10, 10, 28, 28, 1)) # perturbation 이미지
 
     # 새로운 주석
@@ -411,7 +410,7 @@ def cw_saliency_analysis(model):
             perturbation_cw_data[i][j], small_perturbation_targeted_cw_data[i][j], big_perturbation_targeted_cw_data[i][j], small_saliency_targeted_cw_data[i][j], big_saliency_targeted_cw_data[i][j] = highlight_differnt_saliency_pixel(origin_data[i], targeted_cw_data[i][j], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
             perturbation_cw_data[i][j], abs_small_perturbation_targeted_cw_data[i][j], abs_big_perturbation_targeted_cw_data[i][j], abs_small_saliency_targeted_cw_data[i][j], abs_big_saliency_targeted_cw_data[i][j] = abs_highlight_differnt_saliency_pixel(origin_data[i], targeted_cw_data[i][j], saliency_targeted_cw_data[i][j], saliency_origin_data[i])
 
-    m, n = 10, 11
+    m, n = 10, 7
     fig, axs = plt.subplots(nrows=n, ncols=m, squeeze=True, figsize=(6*m, 6*n))
 
     for i in range(10):
@@ -445,21 +444,21 @@ def cw_saliency_analysis(model):
             axs[6, j].set_title("(O high) SA - SO {}".format(j), fontsize=25, fontweight='bold')
             axs[6, j].axis('off')
 
-            axs[7, j].imshow(abs_small_saliency_targeted_cw_data[i][j], cmap="gray")
-            axs[7, j].set_title("(abs low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
-            axs[7, j].axis('off')
+            # axs[7, j].imshow(abs_small_saliency_targeted_cw_data[i][j], cmap="gray")
+            # axs[7, j].set_title("(abs low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            # axs[7, j].axis('off')
 
-            axs[8, j].imshow(abs_small_perturbation_targeted_cw_data[i][j], cmap="gray")
-            axs[8, j].set_title("(O abs low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
-            axs[8, j].axis('off')
+            # axs[8, j].imshow(abs_small_perturbation_targeted_cw_data[i][j], cmap="gray")
+            # axs[8, j].set_title("(O abs low) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            # axs[8, j].axis('off')
 
-            axs[9, j].imshow(abs_big_saliency_targeted_cw_data[i][j], cmap="gray")
-            axs[9, j].set_title("(abs High) SA - SO {}".format(j), fontsize=25, fontweight='bold')
-            axs[9, j].axis('off')
+            # axs[9, j].imshow(abs_big_saliency_targeted_cw_data[i][j], cmap="gray")
+            # axs[9, j].set_title("(abs High) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            # axs[9, j].axis('off')
 
-            axs[10, j].imshow(abs_big_perturbation_targeted_cw_data[i][j], cmap="gray")
-            axs[10, j].set_title("(O abs high) SA - SO {}".format(j), fontsize=25, fontweight='bold')
-            axs[10, j].axis('off')
+            # axs[10, j].imshow(abs_big_perturbation_targeted_cw_data[i][j], cmap="gray")
+            # axs[10, j].set_title("(O abs high) SA - SO {}".format(j), fontsize=25, fontweight='bold')
+            # axs[10, j].axis('off')
 
         fig.savefig("./img/{}.png".format(i))
     
@@ -470,3 +469,46 @@ def cw_saliency_analysis(model):
 
             print("{}   {}    {} ".format(i, j, pred))
         print("-----------------")
+
+def comparision_neuron_activation(model, data):
+
+    ######
+    # Hidden layer 1
+    ######
+    
+    # for hidden_layer_level in range(len(model.layers)):
+    for hidden_layer_level in range(5):
+    
+        intermediate_layer_model = tf.keras.Model(inputs=model.input, outputs=model.layers[hidden_layer_level].output)
+
+        for label_count in range(10):
+
+            intermediate_output = intermediate_layer_model(np.expand_dims(data[label_count], 0))
+
+            if len(intermediate_output.shape) == 4:
+
+                intermediate_output = np.reshape(intermediate_output, (intermediate_output.shape[3], intermediate_output.shape[1], intermediate_output.shape[1]))
+
+                for channel_count in range(intermediate_output.shape[0]):
+
+                    if channel_count == 0:
+                        part_of_line = intermediate_output[0]
+                    else:
+                        part_of_line = np.concatenate((part_of_line, intermediate_output[channel_count]), axis=1)
+
+                if label_count == 0:
+                    part_of_block = part_of_line
+                else:
+                    part_of_block = np.concatenate((part_of_block, part_of_line), axis=0)
+
+        line_draw_position = []
+
+        for i in range(10):
+            i += 1
+            line_draw_position.append(int(part_of_block.shape[0] / 10) * i)
+        print(line_draw_position)
+        time.sleep(1)
+        # x1, y1, y2 = [0, part_of_block.shape[1]], [25, 25], [50, 50]
+
+        # plt.imshow(part_of_block)
+        # plt.savefig("./{}.png".format(hidden_layer_level))

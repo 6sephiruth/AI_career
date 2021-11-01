@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import *
 from tensorflow.keras import layers
+from tensorflow import keras
 
 from keras.applications.vgg16 import VGG16
 
@@ -19,28 +20,44 @@ class mnist_cnn2(Model):
         x = self.d1(x)
         return self.d2(x)
 
+
+def mnist_model():
+    model = tf.keras.models.Sequential([
+        keras.layers.Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(28, 28, 1)),
+        keras.layers.MaxPool2D((2, 2)),
+        keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        keras.layers.MaxPool2D((2, 2)),
+        keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        keras.layers.Flatten(),
+        keras.layers.Dense(64, activation='relu'),
+        keras.layers.Dense(10, activation='softmax')
+    ])
+
+    model.compile(optimizer='adam',
+            loss='sparse_categorical_crossentropy',
+            metrics=['accuracy'])
+
+
+    return model
+
+
 class mnist_cnn(Model):
     def __init__(self):
         super(mnist_cnn, self).__init__()
         self.model = self.build_model()
 
     def build_model(self):
-        model = Sequential()
-        model.add(Conv2D(32, (3, 3),
-                activation='relu',
-                padding='same',
-                input_shape=(28, 28, 1)))
-        model.add(MaxPool2D((2, 2)))
-
-        model.add(Conv2D(64, (3, 3),
-                activation='relu'))
-
-        model.add(MaxPool2D((2, 2)))
-        model.add(Conv2D(64, (3, 3),
-                activation='relu'))
-        model.add(Flatten())
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(10, activation='softmax'))
+        model = tf.keras.models.Sequential([
+            keras.layers.Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(28, 28, 1)),
+            keras.layers.MaxPool2D((2, 2)),
+            keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            keras.layers.MaxPool2D((2, 2)),
+            keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            keras.layers.Flatten(),
+            keras.layers.Dense(64, activation='relu'),
+            keras.layers.Dense(10, activation='softmax')
+        ])
+        
 
         return model
 
