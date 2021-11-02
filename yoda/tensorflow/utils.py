@@ -119,14 +119,25 @@ def find_target_cw_attack(model, num):
 
         # pickle.dump(king_specific_dataset, open(f'./dataset/cw_specific/{num}','wb'))
 
-def make_specific_cw(model, num, target)
+def make_specific_cw(model, num, target):
 
     dataset = tf.keras.datasets.mnist
     (_, _), (x_test, y_test) = dataset.load_data()
     x_test = x_test.reshape((10000, 28, 28, 1))
     x_test = x_test / 255.0
 
-    where_data = np.where(y_test == num)
+    where_data = np.where(y_test == num)[0]
     
-    # particular_data = x_test[where_data]
+    particular_data = x_test[where_data]
     print(where_data[target])
+
+    specific_dataset = np.zeros((10, 28, 28, 1)) # 타겟 이미지의 saliency map
+
+    for i in range(10):
+
+        cw_data = targeted_cw(model, particular_data[where_data[target]], i)
+        specific_dataset[i] = cw_data
+        print(i)
+        # pred = np.argmax(model.predict(tf.expand_dims(cw_data, 0)))
+
+    pickle.dump(specific_dataset, open(f'./dataset/cw_specific/{num}','wb'))

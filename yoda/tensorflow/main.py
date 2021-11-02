@@ -112,7 +112,7 @@ model = tf.keras.models.load_model('./model/kkkk')
 
 # find_target_cw_attack(model, 9)
 
-make_specific_cw(model, 0, 5)
+make_specific_cw(model, 9, 26)
 
 
 
