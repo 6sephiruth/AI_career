@@ -63,7 +63,7 @@ x_test, y_test = test
 
 model = eval(params_loaded['model_train'])()
 
-checkpoint_path = f'model/{DATASET}'
+# checkpoint_path = f'model/{DATASET}'
 
 # if exists(f'model/{DATASET}/saved_model.pb'):
 
@@ -85,24 +85,62 @@ checkpoint_path = f'model/{DATASET}'
 
 #         model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
     
-#     if DATASET == 'cifar10':
+#     # if DATASET == 'cifar10':
 
-#         model.compile(optimizer='adam',
-#                     loss='sparse_categorical_crossentropy',
-#                     metrics=['accuracy'])
+#     #     model.compile(optimizer='adam',
+#     #                 loss='sparse_categorical_crossentropy',
+#     #                 metrics=['accuracy'])
 
-#         model.fit(x_train, y_train, epochs=40, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
+#     #     model.fit(x_train, y_train, epochs=40, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
 
-#     model.save(checkpoint_path)
-#     model = tf.keras.models.load_model(checkpoint_path)
+#     # model.save(checkpoint_path)
+#     # model = tf.keras.models.load_model(checkpoint_path)
+
+# # model.trainable = False
+
+# model = mnist_model()
+# model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test))
+
+# print(model.evaluate(x_test, y_test))
 
 # model.trainable = False
+# model.save('./model/kkkk')
+model = tf.keras.models.load_model('./model/kkkk')
 
-model = mnist_model()
+# print(model.summary())
+# print(model.evaluate(x_test, y_test))
 
-ff = np.where(y_test == 0)
-comparision_neuron_activation(model, x_test[ff][:10])
+# find_target_cw_attack(model, 9)
 
+make_specific_cw(model, 0, 5)
+
+
+
+
+# for i in range(10):
+#     for j in range(10):
+        
+#         targeted_cw_data = pickle.load(open(f'./dataset/cw_specific/{i}','rb'))
+
+#         data = targeted_cw_data[j]
+#         pred = model.predict(tf.expand_dims(data, 0))
+#         pred = np.argmax(pred)
+
+#         print(pred)
+
+
+
+
+
+# ff = np.where(y_test == 0)
+# comparision_neuron_activation(model, x_test[ff][:10])
+
+# print(len(model.layers))
+# print(model.summary())
+# find_target_cw_attack(model, 9)
+
+
+#print(intermediate_output)
 
 
 # x1, y1, y2 = [0, 896], [25, 25], [50, 50]

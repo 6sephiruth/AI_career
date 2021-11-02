@@ -86,7 +86,7 @@ def load_specific_dataset():
 
     return specific_dataset
 
-def find_cw_attack(model, num):
+def find_target_cw_attack(model, num):
     
     dataset = tf.keras.datasets.mnist
     (_, _), (x_test, y_test) = dataset.load_data()
@@ -97,11 +97,36 @@ def find_cw_attack(model, num):
     
     particular_data = x_test[where_data]
 
-    for i in range(len(particular_data)):
+    specific_dataset = np.zeros((10, 28, 28, 1)) # 타겟 이미지의 saliency map
+    king_specific_dataset = np.zeros((100, 10, 28, 28, 1)) # 타겟 이미지의 saliency map
 
-        cw_data = untargeted_cw(model, particular_data[i])
-        ex_cw_data = np.expand_dims(cw_data, 0)
-        pred = model.predict(ex_cw_data)
-        pred = np.argmax(pred)
+    for i in range(100):
 
-        print("{}에서  {} 가 예상됬네".format(i, pred))
+        for j in range(10):
+
+            cw_data = targeted_cw(model, particular_data[i], j)
+            # specific_dataset[i] = cw_data
+
+            pred = np.argmax(model.predict(tf.expand_dims(cw_data, 0)))
+            
+            if pred != j:
+                break
+            else:
+                print("{}  번째  {}의  {}".format(i, j, pred))
+
+
+        # king_specific_dataset[i] = specific_dataset
+
+        # pickle.dump(king_specific_dataset, open(f'./dataset/cw_specific/{num}','wb'))
+
+def make_specific_cw(model, num, target)
+
+    dataset = tf.keras.datasets.mnist
+    (_, _), (x_test, y_test) = dataset.load_data()
+    x_test = x_test.reshape((10000, 28, 28, 1))
+    x_test = x_test / 255.0
+
+    where_data = np.where(y_test == num)
+    
+    # particular_data = x_test[where_data]
+    print(where_data[target])
