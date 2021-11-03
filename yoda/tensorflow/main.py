@@ -110,9 +110,48 @@ model = tf.keras.models.load_model('./model/kkkk')
 # print(model.summary())
 # print(model.evaluate(x_test, y_test))
 
-# find_target_cw_attack(model, 9)
+model.trainable = False
+# modify_cw_data(model)
+# find_target_cw_attack(model, 2)
 
-make_specific_cw(model, 9, 26)
+# make_specific_cw(model,0, 35)
+
+
+# cw_data = pickle.load(open(f'./dataset/cw_specific/0','rb'))
+
+# for i in range(10):
+
+#     pred = model.predict(tf.expand_dims(cw_data[i], 0))
+#     pred = np.argmax(pred)
+#     print(pred)
+
+
+# modify_cw_data()
+
+change_cw_data = pickle.load(open(f'./dataset/cw_specific/change_data','rb'))
+
+# comparision_neuron_activation(model, change_cw_data)
+
+# for i in range(10):
+#     for j in range(10):
+        
+#         plt.imshow(change_cw_data[i][j])
+#         plt.savefig("./img/k_{}_{}".format(i,j))
+
+
+for i in range(10):
+    for j in range(10):
+
+        pred = model.predict(tf.expand_dims(change_cw_data[i][j], 0))
+        pred = np.argmax(pred)
+        print(pred)
+        
+    print("--------")
+
+
+
+
+#print(np.argmax(model.predict(cw_data)))
 
 
 

@@ -471,76 +471,99 @@ def cw_saliency_analysis(model):
             print("{}   {}    {} ".format(i, j, pred))
         print("-----------------")
 
-def comparision_neuron_activation(model, data):
+def comparision_neuron_activation(model, all_data):
 
-    ######
-    # Hidden layer 1
-    ######
-    
-    for hidden_layer_level in range(len(model.layers)-1):
-    # for hidden_layer_level in range(5):
+    for ten_count in range(10):
+
+        data = all_data[ten_count]
+
+        ######
+        # Hidden layer 1
+        ######
         
-        intermediate_layer_model = tf.keras.Model(inputs=model.input, outputs=model.layers[hidden_layer_level].output)
+        for hidden_layer_level in range(len(model.layers)-1):
+        # for hidden_layer_level in range(5):
+            
+            intermediate_layer_model = tf.keras.Model(inputs=model.input, outputs=model.layers[hidden_layer_level].output)
 
-        for label_count in range(10):
+            for label_count in range(10):
 
-            intermediate_output = intermediate_layer_model(np.expand_dims(data[label_count], 0))
+                intermediate_output = intermediate_layer_model(np.expand_dims(data[label_count], 0))
 
-            if len(intermediate_output.shape) == 4:
+                if len(intermediate_output.shape) == 4:
 
-                intermediate_output = np.reshape(intermediate_output, (intermediate_output.shape[3], intermediate_output.shape[1], intermediate_output.shape[1]))
+                    intermediate_output = np.reshape(intermediate_output, (intermediate_output.shape[3], intermediate_output.shape[1], intermediate_output.shape[1]))
 
-                for channel_count in range(intermediate_output.shape[0]):
+                    for channel_count in range(intermediate_output.shape[0]):
 
-                    if channel_count == 0:
-                        part_of_line = intermediate_output[0]
+                        if channel_count == 0:
+                            part_of_line = intermediate_output[0]
+                        else:
+                            part_of_line = np.concatenate((part_of_line, intermediate_output[channel_count]), axis=1)
+
+                    if label_count == 0:
+                        part_of_block = part_of_line
                     else:
-                        part_of_line = np.concatenate((part_of_line, intermediate_output[channel_count]), axis=1)
-
-                if label_count == 0:
-                    part_of_block = part_of_line
-                else:
-                    part_of_block = np.concatenate((part_of_block, part_of_line), axis=0)
-    
-            elif len(intermediate_output.shape) == 2:
-
-                intermediate_output = np.reshape(intermediate_output, (int(np.sqrt(intermediate_output.shape[1])), int(np.sqrt(intermediate_output.shape[1]))) )
-
-                if label_count == 0:
-                    part_of_block = intermediate_output
-                else:
-                    part_of_block = np.concatenate((part_of_block, intermediate_output), axis=0)
-
-        line_draw_position = []
-
-        for i in range(10):
-            i += 1
-            line_draw_position.append(int(part_of_block.shape[0] / 10) * i)
-
-        x = [0, part_of_block.shape[1]]
-        y0 = [line_draw_position[0], line_draw_position[0]]
-        y1 = [line_draw_position[1], line_draw_position[1]]
-        y2 = [line_draw_position[2], line_draw_position[2]]
-        y3 = [line_draw_position[3], line_draw_position[3]]
-        y4 = [line_draw_position[4], line_draw_position[4]]
-        y5 = [line_draw_position[5], line_draw_position[5]]
-        y6 = [line_draw_position[6], line_draw_position[6]]
-        y7 = [line_draw_position[7], line_draw_position[7]]
-        y8 = [line_draw_position[8], line_draw_position[8]]
-
-        plt.plot(x, y0, 'w', markersize=1)
-        plt.plot(x, y1, 'w', markersize=1)
-        plt.plot(x, y2, 'w', markersize=1)
-        plt.plot(x, y3, 'w', markersize=1)
-        plt.plot(x, y4, 'w', markersize=1)
-        plt.plot(x, y5, 'w', markersize=1)
-        plt.plot(x, y6, 'w', markersize=1)
-        plt.plot(x, y7, 'w', markersize=1)
-        plt.plot(x, y8, 'w', markersize=1)
-
-        plt.axis('off')
-        plt.imshow(part_of_block)
-        plt.colorbar()
-        plt.savefig("./{}.png".format(hidden_layer_level))
-        plt.cla()
+                        part_of_block = np.concatenate((part_of_block, part_of_line), axis=0)
         
+                elif len(intermediate_output.shape) == 2:
+
+                    intermediate_output = np.reshape(intermediate_output, (int(np.sqrt(intermediate_output.shape[1])), int(np.sqrt(intermediate_output.shape[1]))) )
+
+                    if label_count == 0:
+                        part_of_block = intermediate_output
+                    else:
+                        part_of_block = np.concatenate((part_of_block, intermediate_output), axis=0)
+
+            line_draw_position = []
+
+            for i in range(10):
+                i += 1
+                line_draw_position.append(int(part_of_block.shape[0] / 10) * i)
+
+            x = [0, part_of_block.shape[1]]
+            y0 = [line_draw_position[0], line_draw_position[0]]
+            y1 = [line_draw_position[1], line_draw_position[1]]
+            y2 = [line_draw_position[2], line_draw_position[2]]
+            y3 = [line_draw_position[3], line_draw_position[3]]
+            y4 = [line_draw_position[4], line_draw_position[4]]
+            y5 = [line_draw_position[5], line_draw_position[5]]
+            y6 = [line_draw_position[6], line_draw_position[6]]
+            y7 = [line_draw_position[7], line_draw_position[7]]
+            y8 = [line_draw_position[8], line_draw_position[8]]
+
+            # x0 = [line_draw_position[0], line_draw_position[0]]
+            # x1 = [line_draw_position[1], line_draw_position[1]]
+            # x2 = [line_draw_position[2], line_draw_position[2]]
+            # x3 = [line_draw_position[3], line_draw_position[3]]
+            # x4 = [line_draw_position[4], line_draw_position[4]]
+            # x5 = [line_draw_position[5], line_draw_position[5]]
+            # x6 = [line_draw_position[6], line_draw_position[6]]
+            # x7 = [line_draw_position[7], line_draw_position[7]]
+            # x8 = [line_draw_position[8], line_draw_position[8]]
+            # y = [0, part_of_block.shape[1]]
+
+            plt.plot(x, y0, 'w', markersize=1)
+            plt.plot(x, y1, 'w', markersize=1)
+            plt.plot(x, y2, 'w', markersize=1)
+            plt.plot(x, y3, 'w', markersize=1)
+            plt.plot(x, y4, 'w', markersize=1)
+            plt.plot(x, y5, 'w', markersize=1)
+            plt.plot(x, y6, 'w', markersize=1)
+            plt.plot(x, y7, 'w', markersize=1)
+            plt.plot(x, y8, 'w', markersize=1)
+
+            # plt.plot(x0, y, 'w', markersize=1)
+            # plt.plot(x1, y, 'w', markersize=1)
+            # plt.plot(x2, y, 'w', markersize=1)
+            # plt.plot(x3, y, 'w', markersize=1)
+            # plt.plot(x4, y, 'w', markersize=1)
+            # plt.plot(x5, y, 'w', markersize=1)
+            # plt.plot(x6, y, 'w', markersize=1)
+            # plt.plot(x7, y, 'w', markersize=1)
+            # plt.plot(x8, y, 'w', markersize=1)
+
+            plt.axis('off')
+            plt.imshow(part_of_block)
+            plt.savefig("./img/{}_{}.png".format(ten_count, hidden_layer_level))
+            plt.cla()

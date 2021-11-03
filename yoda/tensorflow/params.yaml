@@ -2,7 +2,7 @@ batch_size: 64
 
 dataset: 'mnist' # cifar10
 attack_method: 'PGD'
-gpu_num: "1"
+gpu_num: "2"
 
 
 # model.py 참조

@@ -100,8 +100,8 @@ def find_target_cw_attack(model, num):
     specific_dataset = np.zeros((10, 28, 28, 1)) # 타겟 이미지의 saliency map
     king_specific_dataset = np.zeros((100, 10, 28, 28, 1)) # 타겟 이미지의 saliency map
 
-    for i in range(100):
-
+    for i in range(800):
+        i += 312
         for j in range(10):
 
             cw_data = targeted_cw(model, particular_data[i], j)
@@ -129,15 +129,41 @@ def make_specific_cw(model, num, target):
     where_data = np.where(y_test == num)[0]
     
     particular_data = x_test[where_data]
-    print(where_data[target])
 
     specific_dataset = np.zeros((10, 28, 28, 1)) # 타겟 이미지의 saliency map
 
     for i in range(10):
 
-        cw_data = targeted_cw(model, particular_data[where_data[target]], i)
+        cw_data = targeted_cw(model, particular_data[target], i)
         specific_dataset[i] = cw_data
         print(i)
         # pred = np.argmax(model.predict(tf.expand_dims(cw_data, 0)))
 
     pickle.dump(specific_dataset, open(f'./dataset/cw_specific/{num}','wb'))
+
+
+def modify_cw_data():
+    ###
+    # change_dataset[0] 은 전부 0으로 가리키는 targeted cw
+    # change_dataset[1] 은 모델이 전부 1로 가리키는 데이터셋
+    ###
+
+    before_data = np.zeros((10 ,10, 28, 28, 1)) # 타겟 이미지의 saliency map
+    change_dataset = np.zeros((10 ,10, 28, 28, 1)) # 타겟 이미지의 saliency map
+    
+    before_data[0] = pickle.load(open(f'./dataset/cw_specific/0','rb')) #######
+    before_data[1] = pickle.load(open(f'./dataset/cw_specific/1','rb'))
+    before_data[2] = pickle.load(open(f'./dataset/cw_specific/2','rb')) #######
+    before_data[3] = pickle.load(open(f'./dataset/cw_specific/3','rb'))
+    before_data[4] = pickle.load(open(f'./dataset/cw_specific/4','rb'))
+    before_data[5] = pickle.load(open(f'./dataset/cw_specific/5','rb'))
+    before_data[6] = pickle.load(open(f'./dataset/cw_specific/6','rb'))
+    before_data[7] = pickle.load(open(f'./dataset/cw_specific/7','rb'))
+    before_data[8] = pickle.load(open(f'./dataset/cw_specific/8','rb'))
+    before_data[9] = pickle.load(open(f'./dataset/cw_specific/9','rb'))
+
+    for i in range(10):
+        for j in range(10):
+            change_dataset[i][j] = before_data[j][i]
+            
+    pickle.dump(change_dataset, open(f'./dataset/cw_specific/change_data','wb'))
